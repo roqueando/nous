@@ -1,0 +1,20 @@
+{
+  "name": "nous",
+  "version": "0.0.1",
+  "description": "A framework for distributed applications",
+  "main": "index.ts",
+  "author": "Vitor Roque",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "npx ts-node-dev --respawn --transpileOnly index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^13.9.1",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.6.2",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.8.3"
+  }
+}
