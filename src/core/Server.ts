@@ -15,17 +15,13 @@ export default class Server {
         return this;
     }
 
-    public setType(type: string): Server {
+    public setType(type: string): any {
         this.type = type;
         return this;
     }
 
-    public manager(): Server {
-        this.serverType = "manager";
-        return this;
-    }
-    public service(): Server {
-        this.serverType = "service";
+    public setServerType(type: string): any {
+        this.serverType = type;
         return this;
     }
 
@@ -33,7 +29,7 @@ export default class Server {
         this.server.close(); 
     }
 
-    public run(): void {
+    public run(): any {
         
         if(this.type === this.NODE) {
             // create a tcp server;
@@ -46,5 +42,7 @@ export default class Server {
         if(this.type === this.HTTP) {
             // create http server
         }
+
+        return this;
     }
 }
