@@ -1,10 +1,23 @@
 import Manager from '../../src/core/Manager';
 import { createConnection  } from 'net';
-import * as fs from 'fs';
 import * as path from 'path';
-import { promisify } from 'util';
+import helpers from '../helpers';
 
-const writeFile = promisify(fs.writeFile);
-const unlink = promisify(fs.unlink);
-const readDir = promisify(fs.readdir);
-const SERVICE_PATH = path.resolve(__dirname, '../../src/services');
+describe('Service', () => {
+    let manager: Manager;
+    const PORT = 8080;
+    let services: Array<string>;
+
+    let filename = path.resolve(helpers.SERVICE_PATH) + '/HomeTest.ts';
+    beforeAll(async () => {
+        manager = new Manager(PORT);
+        manager.run();
+        await helpers.writeFile(filename, helpers.createService());
+    });
+
+    afterAll(async () => {
+        manager.down();
+        await helpers.downServices();
+        await helpers.unlink(filename);
+    });
+});

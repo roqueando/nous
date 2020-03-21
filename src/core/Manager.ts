@@ -52,9 +52,7 @@ export default class Manager implements CanManage {
 
     public run(): any {
         this.server = createServer();
-        this.server.listen(this.port, () => {
-            console.log(`Manager connected on port: ${this.port}`);
-        });
+        this.server.listen(this.port);
         return this;
     }
 

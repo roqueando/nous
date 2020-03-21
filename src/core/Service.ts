@@ -61,9 +61,7 @@ export default class Service implements CanService {
         
         if(this.type === this.NODE) {
 
-            this.server.listen(this.port || null, () => {
-                console.log(`Service connected on port: ${this.server.address().port}`);
-            });
+            this.server.listen(this.port || null);
             this.register(this.server.address().port);
         }
 
