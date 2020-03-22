@@ -3,7 +3,6 @@ import Messenger from './Messenger';
 import { createServer, AddressInfo  } from 'net';
 import fs from 'fs';
 import path from 'path';
-import { promisify  } from 'util'; 
 
 export default class Manager implements CanManage {
 
@@ -16,6 +15,9 @@ export default class Manager implements CanManage {
 
     constructor(port: number) {
         this.port = port; 
+        this.messenger.on('data manager', payload => {
+            //
+        });
         return this;
     }
 
@@ -23,7 +25,7 @@ export default class Manager implements CanManage {
         this.server.close(); 
     }
 
-    public async upServices(): Promise<Manager> {
+    public upServices(): void {
         this.messenger.on('service manager register', data => {
             switch(data.action) {
                 case 'register':
@@ -37,17 +39,16 @@ export default class Manager implements CanManage {
                     break;
             }
         });
-        const readDir = promisify(fs.readdir);
 
-        const files = await readDir(path.resolve(__dirname, '../services'));
-        files.forEach(async item => {
-            const file = await import(`${this.servicesPath}/${item}`);
+        const files = fs.readdirSync(path.resolve(__dirname, '../services'));
+        files.forEach(item => {
+            const file = require(`${this.servicesPath}/${item}`);
             const [className] = item.split('.');
-            
-            file.default.getInstance().setName(className);
-            await file.default.getInstance().run();
+            const service = new file.default();
+            service.setName(className);
+            service.run();
+
         });
-        return this;
     }
 
     public run(): any {

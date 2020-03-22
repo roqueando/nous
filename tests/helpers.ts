@@ -1,27 +1,96 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { promisify } from 'util';
+import Service from '../src/core/Service';
+import Manager from '../src/core/Manager';
 
-const writeFile = promisify(fs.writeFile);
-const unlink = promisify(fs.unlink);
-const readDir = promisify(fs.readdir);
 const SERVICE_PATH = path.resolve(__dirname, '../src/services');
 
 const helpers = {
-    writeFile,
     SERVICE_PATH,
-    unlink,
-    readDir,
+    firstFilename: path.resolve(SERVICE_PATH) + '/HomeTest.ts',
+    secondFilename: path.resolve(SERVICE_PATH) + '/SecondTest.ts',
     createService: () => {
-        return "import Service from '../core/Service'; export default class HomeTest extends Service {}";
+        return `
+            import Service from '../core/Service'
+            import CanService from '../contracts/CanService'
+
+            export default class HomeTest extends Service implements CanService {
+
+                constructor(port: number = null) {
+                    super();
+                    this.listenDataService();
+                }
+
+                public hello(name: string) {
+                    return ("Hello " + name);
+                }
+                public listenDataService() {
+                    this.messenger.on('data service', data => {
+                        if(data.serviceId === this.id) {
+                            this[data.payload.action](...data.payload.parameters);
+                        }
+                    });
+                }
+            }
+        `;
     },
-    downServices: async () => {
-        const files = await readDir(`${SERVICE_PATH}`);
-        files.forEach(async (item: any) => {
-            const file = require(`${SERVICE_PATH}/${item}`);
-            file.default.getInstance().down();
+    createSecondService: () => {
+        return `
+            import Service from '../core/Service'
+            import CanService from '../contracts/CanService';
+
+            export default class SecondTest extends Service implements CanService { 
+                constructor(port: number = null) {
+                    super();
+                    this.listenDataService();
+                }
+
+                public say(name: string) { 
+                    return ("Aloha " + name); 
+                }
+
+                public listenDataService() {
+                    this.messenger.on('data service', data => {
+                        if(data.serviceId === this.id) {
+                            this[data.payload.action](...data.payload.parameters);
+                        }
+                    });
+                }
+            }
+        `;
+    },
+    downServices: (services: Array<Service>) => {
+        services.forEach(item => {
+            item.down();
         });
-    }
+    },
+    upServices: (manager: Manager): Array<Service> => {
+        const services = [];
+        manager.messenger.on('service manager register', data => {
+            switch(data.action) {
+                case 'register':
+                    manager.services.push({
+                        id: data.payload.id,
+                        name: data.service,
+                        ports: data.payload.ports
+                    });
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        const files = fs.readdirSync(path.resolve(__dirname, '../src/services'));
+        files.forEach(item => {
+            const file = require(`${SERVICE_PATH}/${item}`);
+            const [className] = item.split('.');
+            const service = new file.default();
+            service.setName(className);
+            service.run();
+            services.push(service);
+        });
+        return services;
+    },
 
 };
 

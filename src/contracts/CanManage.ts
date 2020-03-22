@@ -3,7 +3,7 @@ import Manager from '../core/Manager';
 
 export default interface CanManage extends CanMessage {
     services: Array<string>;
-    upServices(): Promise<Manager>;
+    upServices(): void;
     getServices(): Array<string>;
     run(): Manager;
 }

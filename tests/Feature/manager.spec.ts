@@ -1,51 +1,73 @@
 import Manager from '../../src/core/Manager';
 import { createConnection  } from 'net';
 import helpers from '../helpers';
-import * as path from 'path';
+import * as fs from 'fs';
+import Service from '../../src/core/Service';
 
 describe('Manager', () => {
     
     let manager: Manager;
     const PORT = 8080;
     let services: Array<string>;
+    let serviceOne: Service;
+    let serviceTwo: Service;
 
-    let filename = path.resolve(helpers.SERVICE_PATH) + '/HomeTest.ts';
-
-    beforeAll(async () => {
+    beforeAll(() => {
         manager = new Manager(PORT);
         manager.run();
-        await helpers.writeFile(filename, helpers.createService()); 
+
+        fs.writeFileSync(helpers.firstFilename, helpers.createService()); 
+        fs.writeFileSync(helpers.secondFilename, helpers.createSecondService());
+        const [firstService, secondService] = helpers.upServices(manager);
+        serviceOne = firstService;
+        serviceTwo = secondService;
     }); 
 
-    afterAll(async () => {
+    afterAll((done) => {
         manager.down();
-        await helpers.downServices();
-        await helpers.unlink(filename);
+        helpers.downServices([serviceOne, serviceTwo]);
+
+        fs.unlinkSync(helpers.firstFilename);
+        fs.unlinkSync(helpers.secondFilename);
+        done();
     });
 
-    it('should run manager correctly', () => {
+    it('should run manager correctly', (done) => {
         expect(manager).toBeInstanceOf(Manager);
         const socket = createConnection(PORT);
         expect(socket.connecting).toBe(true);
         socket.destroy();
+        done();
     });
 
-    it('should up the services', async () => await manager.upServices());
 
-    it('should have services registered', () => {
+    it('should have services registered', (done) => {
         services = manager.services;
-        const service = require(`${helpers.SERVICE_PATH}/HomeTest.ts`);
+        expect(services).toContainEqual(
+            {
+                id: serviceOne.id,
+                name: serviceOne.name,
+                ports: [serviceOne.port]
+            },
+        );
+        
         expect(services).toContainEqual({
-            id: service.default.getInstance().id,
-            name: 'HomeTest',
-            ports: [service.default.getInstance().port]
+            id: serviceTwo.id,
+            name: serviceTwo.name,
+            ports: [serviceTwo.port]
         });
+        done();
     });
 
-    it('should service was up correctly', () => {
-        const service = require(`${helpers.SERVICE_PATH}/HomeTest.ts`);
-        const socket = createConnection(service.default.getInstance().port);
+    it('should service was up correctly', (done) => {
+        const socket = createConnection(serviceOne.port);
+        const socket2 = createConnection(serviceTwo.port);
+        
+        expect(socket2.connecting).toBe(true);
         expect(socket.connecting).toBe(true);
+
         socket.destroy();
+        socket2.destroy();
+        done();
     })
 });

@@ -1,23 +1,20 @@
-import CanService from '../contracts/CanService';
 import Messenger from './Messenger';
 import { createServer, AddressInfo  } from 'net'; 
 import crypto from 'crypto';
 
-export default class Service implements CanService {
+export default class Service {
 
     protected NODE: string = 'node';
     protected HTTP: string = 'http';
     protected type: string = this.NODE;
-    protected id: string;
+    public id: string;
 
     private static instance: Service;
 
     public server: any = createServer();
-    public instance: Service;
     public ignore: boolean = false;
     public name: string;
     public port: number;
-    public relativePort: number;
 
     public messenger: Messenger = Messenger.getInstance();
 
@@ -43,9 +40,8 @@ export default class Service implements CanService {
     }
 
     public register(port: number = null): void {
-        const hash = crypto.createHash('sha1');
-        hash.update(Math.floor(Math.random()).toString());
-        this.id = hash.digest('hex');
+
+        this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
         this.messenger.emit('service manager register', {
             service: this.name,
@@ -57,10 +53,8 @@ export default class Service implements CanService {
         });
     }
 
-    public async run(): Promise<Service> {
-        
+    public run(): Service {
         if(this.type === this.NODE) {
-
             this.server.listen(this.port || null);
             this.register(this.server.address().port);
         }
@@ -68,7 +62,6 @@ export default class Service implements CanService {
         if(this.type === this.HTTP) {
             // create http server
         }
-
         return this;
     }
 

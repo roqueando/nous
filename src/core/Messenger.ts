@@ -9,4 +9,15 @@ export default class Messenger extends EventEmitter {
         }
         return Messenger.instance;
     }
+
+    public send(nodeId: string, data: object): void {
+        this.emit(`data service`, {
+            serviceId: nodeId,
+            payload: data
+        });
+    }
+
+    public sendToManager(data: object): void {
+        this.emit(`data manager`, data);
+    }
 }
