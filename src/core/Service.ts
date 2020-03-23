@@ -22,7 +22,8 @@ export default class Service {
 
         this.messenger.on('data service', data => {
             if(data.serviceId === this.id) {
-                this[data.payload.action](...data.payload.parameters);
+                const result = this[data.payload.action](...data.payload.parameters);
+                this.messenger.sendToManager(result);
             }
         });
         return this;
