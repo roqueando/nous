@@ -47,7 +47,6 @@ export default class Manager implements CanManage {
             const service = new file.default();
             service.setName(className);
             service.run();
-
         });
     }
 

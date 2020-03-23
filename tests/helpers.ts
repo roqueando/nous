@@ -12,24 +12,12 @@ const helpers = {
     createService: () => {
         return `
             import Service from '../core/Service'
-            import CanService from '../contracts/CanService'
+            import Serviceable from '../contracts/Serviceable'
 
-            export default class HomeTest extends Service implements CanService {
-
-                constructor(port: number = null) {
-                    super();
-                    this.listenDataService();
-                }
+            export default class HomeTest extends Service implements Serviceable {
 
                 public hello(name: string) {
                     return ("Hello " + name);
-                }
-                public listenDataService() {
-                    this.messenger.on('data service', data => {
-                        if(data.serviceId === this.id) {
-                            this[data.payload.action](...data.payload.parameters);
-                        }
-                    });
                 }
             }
         `;
@@ -37,24 +25,12 @@ const helpers = {
     createSecondService: () => {
         return `
             import Service from '../core/Service'
-            import CanService from '../contracts/CanService';
+            import Serviceable from '../contracts/Serviceable';
 
-            export default class SecondTest extends Service implements CanService { 
-                constructor(port: number = null) {
-                    super();
-                    this.listenDataService();
-                }
+            export default class SecondTest extends Service implements Serviceable { 
 
                 public say(name: string) { 
                     return ("Aloha " + name); 
-                }
-
-                public listenDataService() {
-                    this.messenger.on('data service', data => {
-                        if(data.serviceId === this.id) {
-                            this[data.payload.action](...data.payload.parameters);
-                        }
-                    });
                 }
             }
         `;

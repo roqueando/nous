@@ -1,6 +1,5 @@
 import Messenger from './Messenger';
 import { createServer, AddressInfo  } from 'net'; 
-import crypto from 'crypto';
 
 export default class Service {
 
@@ -20,6 +19,12 @@ export default class Service {
 
     constructor(port: number = null) {
         this.port = port;
+
+        this.messenger.on('data service', data => {
+            if(data.serviceId === this.id) {
+                this[data.payload.action](...data.payload.parameters);
+            }
+        });
         return this;
     }
 
@@ -40,7 +45,6 @@ export default class Service {
     }
 
     public register(port: number = null): void {
-
         this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
         this.messenger.emit('service manager register', {
