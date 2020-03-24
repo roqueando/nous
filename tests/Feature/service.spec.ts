@@ -32,6 +32,11 @@ describe('Service', () => {
     });
 
     it('should send data to a service', () => {
+        const client = createConnection(8080);
+        client.connect(8080);
+        console.log(client.connecting);
+        client.write('teste', 'utf8');
+
         manager.messenger.send(serviceOne.id, {
             action: 'hello',
             parameters: [
@@ -46,5 +51,6 @@ describe('Service', () => {
         });
 
         expect(manager.messenger.listenerCount('data service')).toBe(2);
+        client.destroy();
     });
 });

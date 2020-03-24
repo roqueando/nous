@@ -1,6 +1,6 @@
 import CanManage from '../contracts/CanManage';
 import Messenger from './Messenger';
-import { createServer, AddressInfo  } from 'net';
+import { createServer, AddressInfo, Server  } from 'net';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,8 +9,10 @@ export default class Manager implements CanManage {
     public services: Array<any> = [];
     public messenger: Messenger = Messenger.getInstance();
     public port: number;
+    public isRunning: boolean;
+
     protected server: any;
-    
+    protected serverReference: Server;
     protected servicesPath: string = path.resolve(__dirname, '../services');
 
     constructor(port: number) {
@@ -58,5 +60,13 @@ export default class Manager implements CanManage {
 
     public getServices(): Array<string> {
         return this.services;
+    }
+    public isJson(string: string): boolean {
+        try {
+            JSON.parse(string);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 }
