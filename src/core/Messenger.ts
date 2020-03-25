@@ -17,7 +17,11 @@ export default class Messenger extends EventEmitter {
         });
     }
 
-    public sendToManager(data: object): void {
-        this.emit(`data manager`, data);
+    public sendToManager(data: object, clientPort?: number): void {
+        const obj = {
+            payload: data,
+            remotePort: clientPort
+        }
+        this.emit(`data manager`, obj);
     }
 }

@@ -56,7 +56,10 @@ const helpers = {
             }
         });
 
-        const files = fs.readdirSync(path.resolve(__dirname, '../src/services'));
+        const files = fs.readdirSync(path.resolve(__dirname, '../src/services'))
+        .filter((file) => {
+            return file !== '.gitkeep';
+        });
         files.forEach(item => {
             const file = require(`${SERVICE_PATH}/${item}`);
             const [className] = item.split('.');

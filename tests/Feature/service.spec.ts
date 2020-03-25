@@ -11,13 +11,15 @@ describe('Service', () => {
     let serviceOne: Service;
     let serviceTwo: Service;
     
-    beforeAll(() => {
+    beforeAll(async () => {
         manager = new Manager(PORT);
-        manager.run();
+        await manager.run();
 
         fs.writeFileSync(helpers.firstFilename, helpers.createService()); 
         fs.writeFileSync(helpers.secondFilename, helpers.createSecondService());
+        
         const [firstService, secondService] = helpers.upServices(manager);
+
         serviceOne = firstService;
         serviceTwo = secondService;
     });
@@ -31,12 +33,11 @@ describe('Service', () => {
         done();
     });
 
-    it('should send data to a service', () => {
-        const client = createConnection(8080);
-        client.connect(8080);
-        console.log(client.connecting);
-        client.write('teste', 'utf8');
+    test('should listener on manager.run up', () => {
+        expect(manager.server.listenerCount('connection')).toBe(1);
+    });
 
+    test('should send data to a service', () => {
         manager.messenger.send(serviceOne.id, {
             action: 'hello',
             parameters: [
@@ -51,6 +52,5 @@ describe('Service', () => {
         });
 
         expect(manager.messenger.listenerCount('data service')).toBe(2);
-        client.destroy();
     });
 });

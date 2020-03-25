@@ -1,6 +1,6 @@
 import CanManage from '../contracts/CanManage';
 import Messenger from './Messenger';
-import { createServer, AddressInfo, Server  } from 'net';
+import { createServer, AddressInfo, Socket  } from 'net';
 import fs from 'fs';
 import path from 'path';
 
@@ -10,15 +10,17 @@ export default class Manager implements CanManage {
     public messenger: Messenger = Messenger.getInstance();
     public port: number;
     public isRunning: boolean;
+    public server: any;
 
-    protected server: any;
-    protected serverReference: Server;
+    protected clients: Array<Socket> = [];
     protected servicesPath: string = path.resolve(__dirname, '../services');
 
     constructor(port: number) {
         this.port = port; 
         this.messenger.on('data manager', payload => {
-            // return to client that payload.
+            // TODO: get client on clients array and
+            // send the message back
+            console.log(payload);
         });
         return this;
     }
@@ -42,7 +44,10 @@ export default class Manager implements CanManage {
             }
         });
 
-        const files = fs.readdirSync(path.resolve(__dirname, '../services'));
+        const files = fs.readdirSync(path.resolve(__dirname, '../services'))
+        .filter(file => {
+            return file !== '.gitkeep';
+        });
         files.forEach(item => {
             const file = require(`${this.servicesPath}/${item}`);
             const [className] = item.split('.');
@@ -53,7 +58,29 @@ export default class Manager implements CanManage {
     }
 
     public run(): any {
-        this.server = createServer();
+        this.server = createServer({}, (connection) => {
+            this.clients.push(connection);
+
+            connection.on('data', payload => {
+                if(this.isJson(payload.toString())) {
+                    const parsed = JSON.parse(payload.toString());
+
+                    this.services.forEach((item) => {
+                        if(this.toTitleCase(item.name) === this.toTitleCase(parsed.service)) {
+                            this.messenger.send(item.id, {
+                                action: parsed.action,
+                                remotePort: connection.remotePort,
+                                parameters: parsed.parameters
+                            });
+                        } else {
+                            console.log("That service does not exist");
+                        }
+                    });
+                } else {
+                    throw new Error('Data is not a JSON');
+                }
+            });
+        });
         this.server.listen(this.port);
         return this;
     }
@@ -61,7 +88,8 @@ export default class Manager implements CanManage {
     public getServices(): Array<string> {
         return this.services;
     }
-    public isJson(string: string): boolean {
+
+    private isJson(string: string): boolean {
         try {
             JSON.parse(string);
         } catch (e) {
@@ -69,4 +97,14 @@ export default class Manager implements CanManage {
         }
         return true;
     }
+
+    private toTitleCase(str: string): string {
+        return str.replace(
+            /\w\S*/g,
+            function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            }
+        );
+    }
 }
+
