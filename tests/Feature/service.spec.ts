@@ -1,6 +1,4 @@
 import Manager from '../../src/core/Manager';
-import { createConnection  } from 'net';
-import * as path from 'path';
 import helpers from '../helpers';
 import * as fs from 'fs';
 import Service from '../../src/core/Service';
@@ -11,9 +9,9 @@ describe('Service', () => {
     let serviceOne: Service;
     let serviceTwo: Service;
     
-    beforeAll(async () => {
+    beforeAll(() => {
         manager = new Manager(PORT);
-        await manager.run();
+        manager.run();
 
         fs.writeFileSync(helpers.firstFilename, helpers.createService()); 
         fs.writeFileSync(helpers.secondFilename, helpers.createSecondService());
