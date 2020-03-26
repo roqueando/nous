@@ -23,25 +23,23 @@ describe('Manager', () => {
         serviceTwo = secondService;
     }); 
 
-    afterAll((done) => {
+    afterAll(() => {
         manager.down();
         helpers.downServices([serviceOne, serviceTwo]);
 
         fs.unlinkSync(helpers.firstFilename);
         fs.unlinkSync(helpers.secondFilename);
-        done();
     });
 
-    it('should run manager correctly', (done) => {
+    it('should run manager correctly', () => {
         expect(manager).toBeInstanceOf(Manager);
         const socket = createConnection(PORT);
         expect(socket.connecting).toBe(true);
         socket.destroy();
-        done();
     });
 
 
-    it('should have services registered', (done) => {
+    it('should have services registered', () => {
         services = manager.services;
         expect(services).toContainEqual(
             {
@@ -56,10 +54,9 @@ describe('Manager', () => {
             name: serviceTwo.name,
             ports: [serviceTwo.port]
         });
-        done();
     });
 
-    it('should service was up correctly', (done) => {
+    it('should service was up correctly', () => {
         const socket = createConnection(serviceOne.port);
         const socket2 = createConnection(serviceTwo.port);
         
@@ -68,6 +65,5 @@ describe('Manager', () => {
 
         socket.destroy();
         socket2.destroy();
-        done();
-    })
+    });
 });

@@ -9,7 +9,6 @@ export default class Manager implements CanManage {
     public services: Array<any> = [];
     public messenger: Messenger = Messenger.getInstance();
     public port: number;
-    public isRunning: boolean;
     public server: any;
 
     protected clients: Array<Socket> = [];
@@ -18,9 +17,11 @@ export default class Manager implements CanManage {
     constructor(port: number) {
         this.port = port; 
         this.messenger.on('data manager', payload => {
-            // TODO: get client on clients array and
-            // send the message back
-            console.log(payload);
+            this.clients.forEach(client => {
+                if(client.remotePort === payload.remotePort) {
+                    client.write(payload.payload);
+                }
+            });
         });
         return this;
     }
@@ -57,8 +58,8 @@ export default class Manager implements CanManage {
         });
     }
 
-    public run(): any {
-        this.server = createServer({}, (connection) => {
+    public run(): void {
+        this.server = createServer((connection) => {
             this.clients.push(connection);
 
             connection.on('data', payload => {
@@ -82,7 +83,6 @@ export default class Manager implements CanManage {
             });
         });
         this.server.listen(this.port);
-        return this;
     }
 
     public getServices(): Array<string> {
@@ -107,4 +107,3 @@ export default class Manager implements CanManage {
         );
     }
 }
-

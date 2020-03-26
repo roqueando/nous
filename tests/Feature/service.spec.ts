@@ -2,6 +2,7 @@ import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
 import * as fs from 'fs';
 import Service from '../../src/core/Service';
+import {createConnection, connect} from 'net';
 
 describe('Service', () => {
     let manager: Manager;
@@ -22,13 +23,12 @@ describe('Service', () => {
         serviceTwo = secondService;
     });
 
-    afterAll((done) => {
+    afterAll(() => {
         manager.down();
         helpers.downServices([serviceOne, serviceTwo]);
 
         fs.unlinkSync(helpers.firstFilename);
         fs.unlinkSync(helpers.secondFilename);
-        done();
     });
 
     test('should listener on manager.run up', () => {
@@ -36,6 +36,7 @@ describe('Service', () => {
     });
 
     test('should send data to a service', () => {
+
         manager.messenger.send(serviceOne.id, {
             action: 'hello',
             parameters: [
