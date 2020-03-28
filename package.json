@@ -2,12 +2,13 @@
     "name": "nous",
     "version": "0.0.1",
     "description": "A framework for distributed applications",
-    "main": "index.ts",
+    "main": "./src/index.ts",
     "author": "Vitor Roque",
     "license": "MIT",
     "private": true,
     "scripts": {
-        "dev": "npx ts-node-dev --respawn --transpileOnly index.ts",
+        "dev": "npx ts-node-dev --respawn --transpileOnly src/index.ts",
+        "start": "npx ts-node src/index.ts",
         "test": "jest --runInBand"
     },
     "dependencies": {},
