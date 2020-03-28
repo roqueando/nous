@@ -1,8 +1,8 @@
 import CanManage from '../contracts/CanManage';
 import Messenger from './Messenger';
 import { createServer, AddressInfo, Socket  } from 'net';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export default class Manager implements CanManage {
 
@@ -46,10 +46,10 @@ export default class Manager implements CanManage {
         });
 
         const files = fs.readdirSync(path.resolve(__dirname, '../services'))
-        .filter(file => {
+        .filter((file: any) => {
             return file !== '.gitkeep';
         });
-        files.forEach(item => {
+        files.forEach((item: any) => {
             const file = require(`${this.servicesPath}/${item}`);
             const [className] = item.split('.');
             const service = new file.default();
