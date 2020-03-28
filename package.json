@@ -1,15 +1,17 @@
 {
-    "name": "nous",
-    "version": "0.1.0",
-    "description": "A framework for distributed applications",
-    "main": "./src/index.ts",
+    "name": "@roqueando/nous",
+    "version": "0.2.1",
+    "description": "Un orquestre parmi nous",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "author": "Vitor Roque",
     "license": "MIT",
-    "private": true,
+    "private": false,
     "scripts": {
         "dev": "npx ts-node-dev --respawn --transpileOnly src/index.ts",
         "start": "npx ts-node src/index.ts",
-        "test": "jest --runInBand"
+        "test": "jest --runInBand",
+        "build": "npx tsc --build"
     },
     "dependencies": {},
     "devDependencies": {
@@ -22,5 +24,6 @@
         "ts-node": "^8.6.2",
         "ts-node-dev": "^1.0.0-pre.44",
         "typescript": "^3.8.3"
-    }
+    },
+    "keywords": ["distributed", "framework", "nous", "node"]
 }

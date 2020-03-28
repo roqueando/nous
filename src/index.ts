@@ -1,3 +1,9 @@
-import Application from './application';
+import Manager from './core/Manager';
+import Messenger from './core/Messenger';
+import Service from './core/Service';
 
-(new Application).run();
+export {
+    Manager,
+    Messenger,
+    Service
+}
