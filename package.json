@@ -1,6 +1,6 @@
 {
     "name": "nous",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "A framework for distributed applications",
     "main": "./src/index.ts",
     "author": "Vitor Roque",
