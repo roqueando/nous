@@ -16,8 +16,6 @@ describe('Manager', () => {
         manager = new Manager(PORT);
         manager.run();
 
-        fs.writeFileSync(helpers.firstFilename, helpers.createService()); 
-        fs.writeFileSync(helpers.secondFilename, helpers.createSecondService());
         const [firstService, secondService] = helpers.upServices(manager);
         serviceOne = firstService;
         serviceTwo = secondService;
@@ -26,9 +24,6 @@ describe('Manager', () => {
     afterAll(() => {
         manager.down();
         helpers.downServices([serviceOne, serviceTwo]);
-
-        fs.unlinkSync(helpers.firstFilename);
-        fs.unlinkSync(helpers.secondFilename);
     });
 
     it('should run manager correctly', () => {

@@ -16,6 +16,19 @@ export default class Manager implements CanManage {
 
     constructor(port: number) {
         this.port = port; 
+        this.messenger.on('service manager register', data => {
+            switch(data.action) {
+                case 'register':
+                    this.services.push({
+                        id: data.payload.id,
+                        name: data.service,
+                        ports: data.payload.ports
+                    });
+                    break;
+                default:
+                    break;
+            }
+        });
         this.messenger.on('data manager', payload => {
             this.clients.forEach(client => {
                 if(client.remotePort === payload.remotePort) {
@@ -31,31 +44,7 @@ export default class Manager implements CanManage {
     }
 
     public upServices(): void {
-        this.messenger.on('service manager register', data => {
-            switch(data.action) {
-                case 'register':
-                    this.services.push({
-                        id: data.payload.id,
-                        name: data.service,
-                        ports: data.payload.ports
-                    });
-                    break;
-                default:
-                    break;
-            }
-        });
-
-        const files = fs.readdirSync(path.resolve(__dirname, '../services'))
-        .filter((file: any) => {
-            return file !== '.gitkeep';
-        });
-        files.forEach((item: any) => {
-            const file = require(`${this.servicesPath}/${item}`);
-            const [className] = item.split('.');
-            const service = new file.default();
-            service.setName(className);
-            service.run();
-        });
+        this.messenger.emit('up services');
     }
 
     public run(): void {

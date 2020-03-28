@@ -14,9 +14,6 @@ describe('Service', () => {
         manager = new Manager(PORT);
         manager.run();
 
-        fs.writeFileSync(helpers.firstFilename, helpers.createService()); 
-        fs.writeFileSync(helpers.secondFilename, helpers.createSecondService());
-        
         const [firstService, secondService] = helpers.upServices(manager);
 
         serviceOne = firstService;
@@ -26,9 +23,6 @@ describe('Service', () => {
     afterAll(() => {
         manager.down();
         helpers.downServices([serviceOne, serviceTwo]);
-
-        fs.unlinkSync(helpers.firstFilename);
-        fs.unlinkSync(helpers.secondFilename);
     });
 
     test('should listener on manager.run up', () => {

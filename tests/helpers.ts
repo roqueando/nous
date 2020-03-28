@@ -3,38 +3,12 @@ import * as path from 'path';
 import Service from '../src/core/Service';
 import Manager from '../src/core/Manager';
 
-const SERVICE_PATH = path.resolve(__dirname, '../src/services');
+const SERVICE_PATH = path.resolve(__dirname, './Fixtures/services');
 
 const helpers = {
     SERVICE_PATH,
     firstFilename: path.resolve(SERVICE_PATH) + '/HomeTest.ts',
     secondFilename: path.resolve(SERVICE_PATH) + '/SecondTest.ts',
-    createService: () => {
-        return `
-            import Service from '../core/Service'
-            import Serviceable from '../contracts/Serviceable'
-
-            export default class HomeTest extends Service implements Serviceable {
-
-                public hello(name: string) {
-                    return ("Hello " + name);
-                }
-            }
-        `;
-    },
-    createSecondService: () => {
-        return `
-            import Service from '../core/Service'
-            import Serviceable from '../contracts/Serviceable';
-
-            export default class SecondTest extends Service implements Serviceable { 
-
-                public say(name: string) { 
-                    return ("Aloha " + name); 
-                }
-            }
-        `;
-    },
     downServices: (services: Array<Service>) => {
         services.forEach(item => {
             item.down();
@@ -56,7 +30,7 @@ const helpers = {
             }
         });
 
-        const files = fs.readdirSync(path.resolve(__dirname, '../src/services'))
+        const files = fs.readdirSync(SERVICE_PATH)
         .filter((file) => {
             return file !== '.gitkeep';
         });
