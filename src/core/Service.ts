@@ -6,22 +6,23 @@ export default class Service {
     protected NODE: string = 'node';
     protected HTTP: string = 'http';
     protected type: string = this.NODE;
-    public id: string;
+    public id: string = '';
 
     private static instance: Service;
 
     public server: any = createServer();
     public ignore: boolean = false;
-    public name: string;
+    public name: string = '';
     public port: number;
 
     public messenger: Messenger = Messenger.getInstance();
 
-    constructor(port: number = null) {
+    constructor(port: number = 0) {
         this.port = port;
 
-        this.messenger.on('data service', data => {
+        this.messenger.on('data service', (data: any) => {
             if(data.serviceId === this.id) {
+                //@ts-ignore
                 const result = this[data.payload.action](...data.payload.parameters);
                 this.messenger.sendToManager(result, data.payload.remotePort);
             }
@@ -45,7 +46,7 @@ export default class Service {
         return Service.instance;
     }
 
-    public register(port: number = null): void {
+    public register(port: number = 0): void {
         this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
         this.messenger.emit('service manager register', {
