@@ -1,6 +1,6 @@
 {
     "name": "@roqueando/nous",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "Un orquestre parmi nous",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
