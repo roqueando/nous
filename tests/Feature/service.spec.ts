@@ -1,6 +1,5 @@
 import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
-import * as fs from 'fs';
 import Service from '../../src/core/Service';
 import {createConnection, connect} from 'net';
 
@@ -13,6 +12,7 @@ describe('Service', () => {
     beforeAll(() => {
         manager = new Manager(PORT);
         manager.run();
+        manager.upServicesListener();
 
         const [firstService, secondService] = helpers.upServices(manager);
 
