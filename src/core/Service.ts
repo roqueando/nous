@@ -14,6 +14,8 @@ export default class Service {
     public ignore: boolean = false;
     public name: string = '';
     public port: number;
+    public isRunning: boolean = false;
+    public isRegistered: boolean = false;
 
     public messenger: Messenger = Messenger.getInstance();
 
@@ -61,12 +63,14 @@ export default class Service {
                 ports: [port]
             }
         });
+        this.isRegistered = true;
     }
 
     public run(): Service {
         if(this.type === this.NODE) {
             this.server.listen(this.port || null);
             this.register(this.server.address().port);
+            this.isRunning = true;
         }
 
         if(this.type === this.HTTP) {
