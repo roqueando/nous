@@ -15,6 +15,7 @@ describe('Manager', () => {
     beforeAll(() => {
         manager = new Manager(PORT);
         manager.run();
+        manager.upServicesListener();
 
         const [firstService, secondService] = helpers.upServices(manager);
         serviceOne = firstService;
