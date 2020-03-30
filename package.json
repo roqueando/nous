@@ -1,6 +1,6 @@
 {
     "name": "@roqueando/nous",
-    "version": "0.2.9",
+    "version": "0.2.10",
     "description": "Un orquestre parmi nous",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
         "start": "npx ts-node src/index.ts",
         "test": "jest --runInBand",
         "build": "npx tsc --build",
-        "prepare": "rm -rf dist && npx tsc -b",
+        "prepare": "rm -rf dist && npm run build",
         "prepublishOnly": "npm test"
     },
     "dependencies": {},
