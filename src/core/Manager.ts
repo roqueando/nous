@@ -31,19 +31,27 @@ export default class Manager implements CanManage {
         this.server.close(); 
     }
 
+    public static serviceUp() {
+        const files = fs.readdirSync(`${process.cwd()}/services`)
+        .filter((file) => {
+            return file !== '.gitkeep';
+        });
+        files.forEach(item => {
+            const file = require(`${process.cwd()}/services/${item}`);
+            const [className] = item.split('.');
+            const service = new file.default();
+            service.setName(className);
+            service.run();
+        });
+    }
+
     public upServicesListener(): void {
         this.messenger.on('service manager register', data => {
-            switch(data.action) {
-                case 'register':
-                    this.services.push({
-                        id: data.payload.id,
-                        name: data.service,
-                        ports: data.payload.ports
-                    });
-                    break;
-                default:
-                    break;
-            }
+            this.services.push({
+                id: data.payload.id,
+                name: data.service,
+                ports: data.payload.ports
+            });
         });
     }
 

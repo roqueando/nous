@@ -22,10 +22,6 @@ export default class Service {
     constructor(port: number = 0) {
         this.port = port;
 
-        this.messenger.on('up services', () => {
-            console.log('test');
-            this.run();
-        });
         this.messenger.on('data service', (data: any) => {
             if(data.serviceId === this.id) {
                 //@ts-ignore
