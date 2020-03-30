@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 
 export default class Messenger extends EventEmitter {
-    public static instance: Messenger = new Messenger;
+    public static instance: Messenger;
 
     static getInstance(): Messenger {
         if(!Messenger.instance) {
