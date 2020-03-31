@@ -2,6 +2,7 @@ import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
 import Service from '../../src/core/Service';
 import {createConnection, connect} from 'net';
+import {Emitter} from '../../src/core/Emitter';  
 
 describe('Service', () => {
     let manager: Manager;
@@ -30,20 +31,25 @@ describe('Service', () => {
     });
 
     test('should send data to a service', () => {
-
-        manager.messenger.send(serviceOne.id, {
-            action: 'hello',
-            parameters: [
-                'john'
-            ],
+        Emitter.emit('data service', {
+            serviceId: serviceOne.id,
+            payload: {
+                action: 'hello',
+                parameters: [
+                    'john'
+                ]
+            }
         });
-        manager.messenger.send(serviceTwo.id, {
-            action: 'say',
-            parameters: [
-                'Doe'
-            ],
+        Emitter.emit('data service', {
+            serviceId: serviceTwo.id,
+            payload: {
+                action: 'say',
+                parameters: [
+                    'Doe'
+                ]
+            }
         });
 
-        expect(manager.messenger.listenerCount('data service')).toBe(2);
+        expect(Emitter.listenerCount('data service')).toBe(2);
     });
 });

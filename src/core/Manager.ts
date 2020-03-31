@@ -1,5 +1,6 @@
 import CanManage from '../contracts/CanManage';
 import Messenger from './Messenger';
+import {Emitter} from './Emitter';
 import { createServer, AddressInfo, Socket  } from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -17,7 +18,7 @@ export default class Manager implements CanManage {
     constructor(port: number) {
         this.port = port; 
 
-        this.messenger.on('data manager', payload => {
+        Emitter.on('data manager', payload => {
             this.clients.forEach(client => {
                 if(client.remotePort === payload.remotePort) {
                     client.write(payload.payload);
@@ -46,7 +47,7 @@ export default class Manager implements CanManage {
     }
 
     public upServicesListener(): void {
-        this.messenger.on('service manager register', data => {
+        Emitter.on('service manager register', data => {
             this.services.push({
                 id: data.payload.id,
                 name: data.service,
@@ -67,10 +68,13 @@ export default class Manager implements CanManage {
                         service => this.toTitleCase(service.name) === this.toTitleCase(parsed.service)
                     );
                     filtered.forEach((item) => {
-                        this.messenger.send(item.id, {
-                            action: parsed.action,
-                            remotePort: connection.remotePort,
-                            parameters: parsed.parameters
+                        Emitter.emit('data service', {
+                            serviceId: item.id,
+                            payload: {
+                                action: parsed.action,
+                                remotePort: connection.remotePort,
+                                parameters: parsed.parameters
+                            }
                         });
                     });
                 } else {

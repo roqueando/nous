@@ -1,5 +1,6 @@
 import Messenger from './Messenger';
 import { createServer, AddressInfo  } from 'net'; 
+import {Emitter} from './Emitter';
 
 export default class Service {
 
@@ -22,7 +23,7 @@ export default class Service {
     constructor(port: number = 0) {
         this.port = port;
 
-        this.messenger.on('data service', (data: any) => {
+        Emitter.on('data service', (data: any) => {
             if(data.serviceId === this.id) {
                 //@ts-ignore
                 const result = this[data.payload.action](...data.payload.parameters);
@@ -51,7 +52,7 @@ export default class Service {
     public register(port: number = 0): void {
         this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
-        this.messenger.emit('service manager register', {
+        Emitter.emit('service manager register', {
             service: this.name,
             action: 'register',
             payload: {

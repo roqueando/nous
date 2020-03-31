@@ -3,6 +3,7 @@ import { createConnection  } from 'net';
 import helpers from '../helpers';
 import * as fs from 'fs';
 import Service from '../../src/core/Service';
+import {Emitter} from '../../src/core/Emitter';
 
 describe('Manager', () => {
     
@@ -33,7 +34,6 @@ describe('Manager', () => {
         expect(socket.connecting).toBe(true);
         socket.destroy();
     });
-
 
     it('should have services registered', () => {
         services = manager.services;
