@@ -1,35 +1,84 @@
 import Messenger from './Messenger';
-import { createServer, AddressInfo  } from 'net'; 
+import { createServer, AddressInfo, createConnection, Socket  } from 'net'; 
 import {Emitter} from './Emitter';
 
 export default class Service {
 
+    /** @var String NODE
+     * Service TCP node
+     */
     protected NODE: string = 'node';
+
+    /** @var String HTTP
+     * Service HTTP node
+     */
     protected HTTP: string = 'http';
+
+    /** @var String type
+     * Service type. Default NODE
+     */
     protected type: string = this.NODE;
+
+    /** @var String id
+     * Service identification
+     */
     public id: string = '';
 
+    /** @var Socket socket
+     * Servic connction with Manager
+     */
+    public socket: Socket = createConnection(8080);
+
+    /** @var Service instance **/
     private static instance: Service;
 
-    public server: any = createServer();
-    public ignore: boolean = false;
-    public name: string = '';
-    public port: number;
-    public isRunning: boolean = false;
-    public isRegistered: boolean = false;
+    /**
+     * @var Server server
+     * Handles all tcp packet
+     * and return to Manager
+     */
+    public server: any = createServer((connection) => {
+        connection.on('data', data => {
+            if(this.isJson(data.toString())) {
+                const parsed = JSON.parse(data.toString());
 
-    public messenger: Messenger = Messenger.getInstance();
+                if(parsed.serviceId === this.id) {
+                    const result = this[parsed.payload.action](...parsed.payload.parameters);
+                    this.socket.write(JSON.stringify({
+                        result,
+                        remotePort: parsed.payload.remotePort
+                    }))
+                }
+            }else {
+                console.error("[SERVICE] Data is not a JSON");
+            }
+        });
+    });
+
+    /** @var Bool ignore
+     * Set true to not run this service first
+     * and run only manual
+     */
+    public ignore: boolean = false;
+
+    /** @var String name 
+     * Service name
+     */
+    public name: string = '';
+
+    /** @var Number port
+     * Service port
+     */
+    public port: number;
+
+    /** @var Bool isRunning **/
+    public isRunning: boolean = false;
+
+    /** @var Bool isRegistered **/
+    public isRegistered: boolean = false;
 
     constructor(port: number = 0) {
         this.port = port;
-
-        Emitter.on('data service', (data: any) => {
-            if(data.serviceId === this.id) {
-                //@ts-ignore
-                const result = this[data.payload.action](...data.payload.parameters);
-                this.messenger.sendToManager(result, data.payload.remotePort);
-            }
-        });
         return this;
     }
 
@@ -52,14 +101,15 @@ export default class Service {
     public register(port: number = 0): void {
         this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
-        Emitter.emit('service manager register', {
+
+        this.socket.write(JSON.stringify({
             service: this.name,
             action: 'register',
             payload: {
                 id: this.id,
-                ports: [port]
+                port: port
             }
-        });
+        }));
         this.isRegistered = true;
     }
 
@@ -74,5 +124,14 @@ export default class Service {
             // create http server
         }
         return this;
+    }
+
+    private isJson(string: string): boolean {
+        try {
+            JSON.parse(string);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 }
