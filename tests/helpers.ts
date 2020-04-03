@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import Service from '../src/core/Service';
-import Manager from '../src/core/Manager';
 
 const SERVICE_PATH = path.resolve(__dirname, './Fixtures/services');
 
@@ -14,22 +13,8 @@ const helpers = {
             item.down();
         });
     },
-    upServices: (manager: Manager): Array<Service> => {
+    upServices: (): Array<Service> => {
         const services = [];
-        manager.messenger.on('service manager register', data => {
-            switch(data.action) {
-                case 'register':
-                    manager.services.push({
-                        id: data.payload.id,
-                        name: data.service,
-                        ports: data.payload.ports
-                    });
-                    break;
-                default:
-                    break;
-            }
-        });
-
         const files = fs.readdirSync(SERVICE_PATH)
         .filter((file) => {
             return file !== '.gitkeep';

@@ -1,6 +1,8 @@
-import Messenger from './Messenger';
-import { createServer, AddressInfo, createConnection, Socket  } from 'net'; 
-import {Emitter} from './Emitter';
+import {
+    createServer,
+    createConnection,
+    Socket
+} from 'net';
 
 export default class Service {
 
@@ -19,6 +21,11 @@ export default class Service {
      */
     protected type: string = this.NODE;
 
+    /** @var Number managerPort
+     * Manager general PORT number
+     */
+    public managerPort: number = 8080;
+
     /** @var String id
      * Service identification
      */
@@ -27,10 +34,7 @@ export default class Service {
     /** @var Socket socket
      * Servic connction with Manager
      */
-    public socket: Socket = createConnection(8080);
-
-    /** @var Service instance **/
-    private static instance: Service;
+    public socket: Socket = createConnection({port: this.managerPort});
 
     /**
      * @var Server server
@@ -41,12 +45,16 @@ export default class Service {
         connection.on('data', data => {
             if(this.isJson(data.toString())) {
                 const parsed = JSON.parse(data.toString());
-
                 if(parsed.serviceId === this.id) {
                     const result = this[parsed.payload.action](...parsed.payload.parameters);
                     this.socket.write(JSON.stringify({
-                        result,
-                        remotePort: parsed.payload.remotePort
+                        service: this.name,
+                        action: 'response data service',
+                        isService: true,
+                        payload: {
+                          result,
+                          remotePort: parsed.payload.remotePort
+                        }
                     }))
                 }
             }else {
@@ -61,7 +69,7 @@ export default class Service {
      */
     public ignore: boolean = false;
 
-    /** @var String name 
+    /** @var String name
      * Service name
      */
     public name: string = '';
@@ -82,37 +90,51 @@ export default class Service {
         return this;
     }
 
+    /** setName
+     * @param {String} name
+     * @return {Service}
+     * @description Set the service name
+     */
     public setName(name: string): Service {
         this.name = name;
         return this;
     }
 
+    /** down
+     * @return {void}
+     * @description Close the server
+     */
     public down(): void {
         this.server.close();
     }
 
-    static getInstance(): Service {
-        if(!Service.instance) {
-            Service.instance = new Service();
-        }
-        return Service.instance;
-    }
-
+    /** Register
+     * @param {Number} port Server port
+     * @return {void}
+     * @description Send a packet to Manager server
+     */
     public register(port: number = 0): void {
         this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
 
-        this.socket.write(JSON.stringify({
+        if(this.socket.connecting) {
+          this.socket.write(JSON.stringify({
             service: this.name,
             action: 'register',
+            isService: true,
             payload: {
-                id: this.id,
-                port: port
+              id: this.id,
+              port: port
             }
-        }));
+          }));
+        }
         this.isRegistered = true;
     }
 
+    /** Run
+     * @return {Service}
+     * @description Run the service to a TCP or HTTP node
+     */
     public run(): Service {
         if(this.type === this.NODE) {
             this.server.listen(this.port || null);
@@ -126,6 +148,8 @@ export default class Service {
         return this;
     }
 
+    /** isJson
+     */
     private isJson(string: string): boolean {
         try {
             JSON.parse(string);

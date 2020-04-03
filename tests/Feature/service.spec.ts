@@ -1,55 +1,59 @@
 import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
 import Service from '../../src/core/Service';
-import {createConnection, connect} from 'net';
-import {Emitter} from '../../src/core/Emitter';  
+import {createConnection, Socket} from 'net';
 
 describe('Service', () => {
     let manager: Manager;
     const PORT = 8080;
     let serviceOne: Service;
     let serviceTwo: Service;
-    
-    beforeAll(() => {
-        manager = new Manager(PORT);
+    let client: Socket;
+
+    beforeEach((done) => {
+        manager = new Manager(PORT)
         manager.run();
-        manager.upServicesListener();
 
-        const [firstService, secondService] = helpers.upServices(manager);
-
+        const [firstService, secondService] = helpers.upServices();
         serviceOne = firstService;
         serviceTwo = secondService;
+        client = createConnection(manager.port); 
+        client.on('connect', () => {
+            done();
+        });
     });
 
-    afterAll(() => {
-        manager.down();
+    afterEach((done) => {
         helpers.downServices([serviceOne, serviceTwo]);
+        manager.down();
+        if(client.connecting) {
+            client.destroy();
+        }
+        done();
     });
 
-    test('should listener on manager.run up', () => {
-        expect(manager.server.listenerCount('connection')).toBe(1);
+    test('should manager and services up', () => {
+        expect(manager.server.listening).toBeTruthy();
+        expect(serviceOne.server.listening).toBeTruthy();
+        expect(serviceTwo.server.listening).toBeTruthy();
     });
 
     test('should send data to a service', () => {
-        Emitter.emit('data service', {
-            serviceId: serviceOne.id,
+        client.write(JSON.stringify({
+            service: 'HomeTest',
+            action: 'data service',
+            isService: false,
             payload: {
                 action: 'hello',
                 parameters: [
-                    'john'
-                ]
+                    'John'
+                ],
+                remotePort: client.localPort
             }
+        }));
+        client.on('data', payload => {
+            expect(payload.toString()).toBe("Hello John");
         });
-        Emitter.emit('data service', {
-            serviceId: serviceTwo.id,
-            payload: {
-                action: 'say',
-                parameters: [
-                    'Doe'
-                ]
-            }
-        });
-
-        expect(Emitter.listenerCount('data service')).toBe(2);
+        client.on('error', err => console.log(err));
     });
 });
