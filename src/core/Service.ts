@@ -1,71 +1,140 @@
-import Messenger from './Messenger';
-import { createServer, AddressInfo  } from 'net'; 
+import {
+    createServer,
+    createConnection,
+    Socket
+} from 'net';
 
 export default class Service {
 
+    /** @var String NODE
+     * Service TCP node
+     */
     protected NODE: string = 'node';
+
+    /** @var String HTTP
+     * Service HTTP node
+     */
     protected HTTP: string = 'http';
+
+    /** @var String type
+     * Service type. Default NODE
+     */
     protected type: string = this.NODE;
+
+    /** @var Number managerPort
+     * Manager general PORT number
+     */
+    public managerPort: number = 8080;
+
+    /** @var String id
+     * Service identification
+     */
     public id: string = '';
 
-    private static instance: Service;
+    /** @var Socket socket
+     * Servic connction with Manager
+     */
+    public socket: Socket = createConnection({port: this.managerPort});
 
-    public server: any = createServer();
+    /**
+     * @var Server server
+     * Handles all tcp packet
+     * and return to Manager
+     */
+    public server: any = createServer((connection) => {
+        connection.on('data', data => {
+            if(this.isJson(data.toString())) {
+                const parsed = JSON.parse(data.toString());
+                if(parsed.serviceId === this.id) {
+                    const result = this[parsed.payload.action](...parsed.payload.parameters);
+                    this.socket.write(JSON.stringify({
+                        service: this.name,
+                        action: 'response data service',
+                        isService: true,
+                        payload: {
+                          result,
+                          remotePort: parsed.payload.remotePort
+                        }
+                    }))
+                }
+            }else {
+                console.error("[SERVICE] Data is not a JSON");
+            }
+        });
+    });
+
+    /** @var Bool ignore
+     * Set true to not run this service first
+     * and run only manual
+     */
     public ignore: boolean = false;
-    public name: string = '';
-    public port: number;
-    public isRunning: boolean = false;
-    public isRegistered: boolean = false;
 
-    public messenger: Messenger = Messenger.getInstance();
+    /** @var String name
+     * Service name
+     */
+    public name: string = '';
+
+    /** @var Number port
+     * Service port
+     */
+    public port: number;
+
+    /** @var Bool isRunning **/
+    public isRunning: boolean = false;
+
+    /** @var Bool isRegistered **/
+    public isRegistered: boolean = false;
 
     constructor(port: number = 0) {
         this.port = port;
-
-        this.messenger.on('up services', () => {
-            console.log('test');
-            this.run();
-        });
-        this.messenger.on('data service', (data: any) => {
-            if(data.serviceId === this.id) {
-                //@ts-ignore
-                const result = this[data.payload.action](...data.payload.parameters);
-                this.messenger.sendToManager(result, data.payload.remotePort);
-            }
-        });
         return this;
     }
 
+    /** setName
+     * @param {String} name
+     * @return {Service}
+     * @description Set the service name
+     */
     public setName(name: string): Service {
         this.name = name;
         return this;
     }
 
+    /** down
+     * @return {void}
+     * @description Close the server
+     */
     public down(): void {
         this.server.close();
     }
 
-    static getInstance(): Service {
-        if(!Service.instance) {
-            Service.instance = new Service();
-        }
-        return Service.instance;
-    }
-
+    /** Register
+     * @param {Number} port Server port
+     * @return {void}
+     * @description Send a packet to Manager server
+     */
     public register(port: number = 0): void {
         this.id = '_' + Math.random().toString(36).substr(2, 9);
         this.port = port;
-        this.messenger.emit('service manager register', {
+
+        if(this.socket.connecting) {
+          this.socket.write(JSON.stringify({
             service: this.name,
             action: 'register',
+            isService: true,
             payload: {
-                id: this.id,
-                ports: [port]
+              id: this.id,
+              port: port
             }
-        });
+          }));
+        }
         this.isRegistered = true;
     }
 
+    /** Run
+     * @return {Service}
+     * @description Run the service to a TCP or HTTP node
+     */
     public run(): Service {
         if(this.type === this.NODE) {
             this.server.listen(this.port || null);
@@ -77,5 +146,16 @@ export default class Service {
             // create http server
         }
         return this;
+    }
+
+    /** isJson
+     */
+    private isJson(string: string): boolean {
+        try {
+            JSON.parse(string);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 }

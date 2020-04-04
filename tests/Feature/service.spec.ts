@@ -1,49 +1,79 @@
 import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
 import Service from '../../src/core/Service';
-import {createConnection, connect} from 'net';
+import {createConnection, Socket} from 'net';
+import {setTimeout} from 'timers';
 
 describe('Service', () => {
     let manager: Manager;
     const PORT = 8080;
     let serviceOne: Service;
     let serviceTwo: Service;
-    
-    beforeAll(() => {
-        manager = new Manager(PORT);
+    let client: Socket;
+
+    beforeEach((done) => {
+        manager = new Manager(PORT)
         manager.run();
-        manager.upServicesListener();
 
-        const [firstService, secondService] = helpers.upServices(manager);
-
+        const [firstService, secondService] = helpers.upServices();
         serviceOne = firstService;
         serviceTwo = secondService;
+        client = createConnection(manager.port); 
+        client.on('connect', () => {
+            done();
+        });
     });
 
-    afterAll(() => {
-        manager.down();
+    afterEach((done) => {
+        serviceOne.socket.destroy();
+        serviceTwo.socket.destroy();
         helpers.downServices([serviceOne, serviceTwo]);
+        manager.down();
+        if(client.connecting) {
+            client.destroy();
+        }
+        done();
     });
 
-    test('should listener on manager.run up', () => {
-        expect(manager.server.listenerCount('connection')).toBe(1);
+    test('should manager and services up', () => {
+        expect(manager.server.listening).toBeTruthy();
+        expect(serviceOne.server.listening).toBeTruthy();
+        expect(serviceTwo.server.listening).toBeTruthy();
     });
 
-    test('should send data to a service', () => {
-
-        manager.messenger.send(serviceOne.id, {
-            action: 'hello',
-            parameters: [
-                'john'
-            ],
+    test('should send data to a service', (done) => {
+        client.write(JSON.stringify({
+            service: 'HomeTest',
+            action: 'data service',
+            isService: false,
+            payload: {
+                action: 'hello',
+                parameters: [
+                    'John'
+                ]
+            }
+        }));
+        client.on('data', payload => {
+            expect(payload.toString()).toBe("Hello John");
+            done();
         });
-        manager.messenger.send(serviceTwo.id, {
-            action: 'say',
-            parameters: [
-                'Doe'
-            ],
-        });
-
-        expect(manager.messenger.listenerCount('data service')).toBe(2);
     });
+
+    test('should send data to second service', done => {
+        client.write(JSON.stringify({
+            service: 'SecondTest',
+            action: 'data service',
+            isService: false,
+            payload: {
+                action: 'say',
+                parameters: [
+                    'John'
+                ],
+            }
+        }));
+        client.on('data', payload => {
+            expect(payload.toString()).toBe("Aloha John");
+            done();
+        });
+    })
 });

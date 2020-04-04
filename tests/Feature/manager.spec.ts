@@ -1,7 +1,6 @@
 import Manager from '../../src/core/Manager';
-import { createConnection  } from 'net';
+import { createConnection, Socket  } from 'net';
 import helpers from '../helpers';
-import * as fs from 'fs';
 import Service from '../../src/core/Service';
 
 describe('Manager', () => {
@@ -11,45 +10,33 @@ describe('Manager', () => {
     let services: Array<string>;
     let serviceOne: Service;
     let serviceTwo: Service;
+    let client: Socket;
 
     beforeAll(() => {
         manager = new Manager(PORT);
         manager.run();
-        manager.upServicesListener();
 
-        const [firstService, secondService] = helpers.upServices(manager);
+        const [firstService, secondService] = helpers.upServices();
         serviceOne = firstService;
         serviceTwo = secondService;
-    }); 
+    })
 
     afterAll(() => {
         manager.down();
+        serviceOne.socket.destroy();
+        serviceTwo.socket.destroy();
         helpers.downServices([serviceOne, serviceTwo]);
-    });
-
-    it('should run manager correctly', () => {
-        expect(manager).toBeInstanceOf(Manager);
-        const socket = createConnection(PORT);
-        expect(socket.connecting).toBe(true);
-        socket.destroy();
-    });
-
-
-    it('should have services registered', () => {
-        services = manager.services;
-        expect(services).toContainEqual(
-            {
-                id: serviceOne.id,
-                name: serviceOne.name,
-                ports: [serviceOne.port]
-            },
-        );
-        
-        expect(services).toContainEqual({
-            id: serviceTwo.id,
-            name: serviceTwo.name,
-            ports: [serviceTwo.port]
+    })
+    beforeEach((done) => {
+        client = createConnection(manager.port); 
+        client.on('connect', () => {
+            done();
         });
+    });
+
+    afterEach((done) => {
+        done();
+        client.destroy();
     });
 
     it('should service was up correctly', () => {
@@ -58,8 +45,23 @@ describe('Manager', () => {
         
         expect(socket2.connecting).toBe(true);
         expect(socket.connecting).toBe(true);
-
         socket.destroy();
         socket2.destroy();
+    });
+    
+    it('should have services registered', () => {
+        expect(manager.services).toContainEqual(
+            {
+                id: manager.services[0].id,
+                name: manager.services[0].name,
+                port: manager.services[0].port
+            },
+        );
+
+        expect(manager.services).toContainEqual({
+            id: manager.services[1].id,
+            name: manager.services[1].name,
+            port: manager.services[1].port
+        });
     });
 });
