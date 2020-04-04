@@ -36,7 +36,7 @@ export default class Manager implements CanManage {
                 serviceId: item.id,
                 payload: {
                   action: parsed.payload.action,
-                  remotePort: parsed.payload.remotePort,
+                  remotePort: connection.remotePort,
                   parameters: parsed.payload.parameters
                 }
               }));

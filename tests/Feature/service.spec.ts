@@ -48,12 +48,11 @@ describe('Service', () => {
                 parameters: [
                     'John'
                 ],
-                remotePort: client.localPort
             }
         }));
+
         client.on('data', payload => {
             expect(payload.toString()).toBe("Hello John");
         });
-        client.on('error', err => console.log(err));
     });
 });
