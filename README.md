@@ -21,9 +21,7 @@ yarn install
 
 ## Usage
 
-```sh
 Please see [nous-cli](https://github.com/roqueando/nous-cli)
-```
 
 ## Run tests
 
