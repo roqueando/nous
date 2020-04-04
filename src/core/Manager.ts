@@ -44,6 +44,7 @@ export default class Manager implements CanManage {
           }
         }
       } else {
+        console.log(payload.toString());
         console.error("Data received is not a JSON");
       }
     });

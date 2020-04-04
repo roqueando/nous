@@ -23,6 +23,8 @@ describe('Manager', () => {
 
     afterAll(() => {
         manager.down();
+        serviceOne.socket.destroy();
+        serviceTwo.socket.destroy();
         helpers.downServices([serviceOne, serviceTwo]);
     })
     beforeEach((done) => {
@@ -43,7 +45,8 @@ describe('Manager', () => {
         
         expect(socket2.connecting).toBe(true);
         expect(socket.connecting).toBe(true);
-
+        socket.destroy();
+        socket2.destroy();
     });
     
     it('should have services registered', () => {
