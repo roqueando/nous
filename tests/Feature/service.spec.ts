@@ -2,7 +2,6 @@ import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
 import Service from '../../src/core/Service';
 import {createConnection, Socket} from 'net';
-import {setTimeout} from 'timers';
 
 describe('Service', () => {
     let manager: Manager;
