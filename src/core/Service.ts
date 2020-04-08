@@ -1,7 +1,8 @@
 import {
     createServer,
     createConnection,
-    Socket
+    Socket,
+    Server
 } from 'net';
 
 export default class Service {
@@ -34,34 +35,17 @@ export default class Service {
     /** @var Socket socket
      * Servic connction with Manager
      */
-    public socket: Socket = createConnection({port: this.managerPort});
+    public socket: Socket = createConnection({ port: this.managerPort  }); 
+
+    /** @var {Number} quantity of nodes */
+    protected quantity: number = 1;
 
     /**
      * @var Server server
      * Handles all tcp packet
      * and return to Manager
      */
-    public server: any = createServer((connection) => {
-        connection.on('data', data => {
-            if(this.isJson(data.toString())) {
-                const parsed = JSON.parse(data.toString());
-                if(parsed.serviceId === this.id) {
-                    const result = this[parsed.payload.action](...parsed.payload.parameters);
-                    this.socket.write(JSON.stringify({
-                        service: this.name,
-                        action: 'response data service',
-                        isService: true,
-                        payload: {
-                          result,
-                          remotePort: parsed.payload.remotePort
-                        }
-                    }))
-                }
-            }else {
-                console.error("[SERVICE] Data is not a JSON");
-            }
-        });
-    });
+    public server: any = createServer(connection => this.handleConnection(connection));
 
     /** @var Bool ignore
      * Set true to not run this service first
@@ -146,6 +130,32 @@ export default class Service {
             // create http server
         }
         return this;
+    }
+
+    protected handleConnection(connection: Socket) {
+      connection.on('data', data => {
+        if(this.isJson(data.toString())) {
+          const parsed = JSON.parse(data.toString());
+          if(parsed.serviceId === this.id) {
+            const result = this[parsed.payload.action](...parsed.payload.parameters);
+            this.socket.write(JSON.stringify({
+              service: this.name,
+              action: 'response data service',
+              isService: true,
+              payload: {
+                result,
+                remotePort: parsed.payload.remotePort
+              }
+            }))
+          }
+        }else {
+          console.error("[SERVICE] Data is not a JSON");
+        }
+      });
+    }
+
+    public getQuantity(): number {
+      return this.quantity;
     }
 
     /** isJson
