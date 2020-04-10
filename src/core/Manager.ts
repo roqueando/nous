@@ -1,5 +1,20 @@
 import CanManage from '../contracts/CanManage';
-import { createServer, Socket, createConnection, Server } from 'net';
+
+import {
+  Register,
+  DataService,
+  ResponseService,
+  DownService
+} from '../typos';
+
+import Token from './Token';
+
+import {
+  createServer,
+  Socket,
+  createConnection,
+  Server
+} from 'net';
 
 export default class Manager implements CanManage {
 
@@ -59,50 +74,111 @@ export default class Manager implements CanManage {
     connection.on('data', payload => {
       if(this.isJson(payload.toString())) {
         const parsed = JSON.parse(payload.toString());
-
         // when is client, save client
         if(!parsed.isService) {
           this.clients.push(connection);
         }
-        const filtered = this.services.length > 0 ? this.services.filter(
-          service => service && (this.toTitleCase(service.name) === this.toTitleCase(parsed.service)
-        )) : [];
-
-        // ACTION: register
-        if(parsed.isService && parsed.action === 'register') {
-          this.services.push({
-            name: parsed.service,
-            id: parsed.payload.id,
-            port: parsed.payload.port
-          });
-        }
-
-        // ACTION: response data service
-        if(parsed.isService && parsed.action === 'response data service') {
-          const filteredClients = this.clients.filter(client => parsed.payload.remotePort === client.remotePort);
-          filteredClients[0].write(parsed.payload.result);
-        }
-
-        // ACTION: data service
-        if(!parsed.isService && parsed.action === 'data service') {
-
-          if(filtered.length > 0) {
-            const node = filtered[Math.floor(Math.random() * filtered.length)]; // basic balance
-            const service = createConnection({port: node.port});
-            service.write(JSON.stringify({
-              serviceId: node.id,
-              payload: {
-                action: parsed.payload.action,
-                remotePort: connection.remotePort,
-                parameters: parsed.payload.parameters
-              }
-            }));
-          }
-        }
+        this.action(parsed.isService, parsed.action, parsed, connection);
       } else {
         console.error("Data received is not a JSON");
       }
     });
+  }
+
+  /**
+   * @function action
+   * @private
+   * @param {Boolean} isService
+   * @param {String} action
+   * @param {Any} data
+   * @returns {void}
+   * @description Each action which pass, will execute some cases
+   *  and will be validated by own typos.
+   */
+  private action(isService: boolean, action: string, data: any, actualConnection: Socket): void {
+    switch(action) {
+      case 'register':
+        if (isService) this.actionRegister(data);
+        break;
+      case 'response data service':
+        if (isService) this.actionResponseDataService(data);
+        break;
+      case 'data service':
+        if (!isService) this.actionDataService(data, actualConnection);
+        break;
+      case 'down':
+        if(!isService) this.actionDownService(data, actualConnection);
+      default:
+        break;
+    }
+  }
+
+  private actionDownService(data: DownService, conn: Socket): void {
+    const verified = Token.verify(data.payload.from);
+    if(verified) {
+      this.services.forEach(item => {
+        const socket = createConnection({port: item.port});
+        socket.write(JSON.stringify({
+          action: 'down',
+        }));
+      })
+    }
+  }
+
+  /**
+   * @function actionRegister
+   * @private
+   * @param {Register} data
+   * @returns {void}
+   * @description Register a service into Manager's service list.
+   */
+  private actionRegister(data: Register): void {
+    this.services.push({
+      name: data.service,
+      id: data.payload.id,
+      port: data.payload.port
+    });
+  }
+
+  /**
+   * @function actionDataService
+   * @private
+   * @param {DataService} data
+   * @returns {void}
+   * @description Get the payload from client and sends
+   * to service.
+   */
+  private actionDataService(data: DataService, conn: Socket): void {
+    const filtered = this.services.length > 0
+      ? this.services.filter(
+        service => service && (this.toTitleCase(service.name) === this.toTitleCase(data.service))
+      )
+        : [];
+
+    if(filtered.length > 0) {
+      const node = filtered[Math.floor(Math.random() * filtered.length)]; // basic balance
+      const service = createConnection({port: node.port});
+      service.write(JSON.stringify({
+        serviceId: node.id,
+        payload: {
+          action: data.payload.action,
+          remotePort: conn.remotePort,
+          parameters: data.payload.parameters
+        }
+      }));
+    }
+  }
+
+  /**
+   * @function actionResponseDataService
+   * @private
+   * @param {ResponseService} data
+   * @returns {void}
+   * @description Write a tcp packet to the client
+   */
+  private actionResponseDataService(data: ResponseService): void {
+    const filteredClients = this.clients.filter(client => data.payload.remotePort === client.remotePort);
+    filteredClients[0].write(data.payload.result);
   }
 
   /** @private
