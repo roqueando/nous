@@ -100,10 +100,11 @@ describe('nous tests', () => {
         }));
     });
 
-    test('should all services down', (done) => {
+    test('should all services and manager down', (done) => {
         setTimeout(() => {
             expect(serviceOne.server.listening).toBeFalsy();
             expect(serviceOne.server.listening).toBeFalsy();
+            expect(manager.server.listening).toBeFalsy();
             done();
         }, 3000);
     });
