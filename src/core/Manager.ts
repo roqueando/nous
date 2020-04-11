@@ -121,6 +121,7 @@ export default class Manager implements CanManage {
         socket.write(JSON.stringify({
           action: 'down',
         }));
+        conn.write('OK');
         this.down();
       })
     }
