@@ -1,11 +1,9 @@
 import Manager from './core/Manager';
-import Messenger from './core/Messenger';
 import Service from './core/Service';
-import {Emitter} from './core/Emitter';  
+import Token from './core/Token';
 
 export {
     Manager,
-    Messenger,
     Service,
-    Emitter
+    Token
 }
