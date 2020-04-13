@@ -4,7 +4,8 @@ import {
   ActionRegister,
   ActionService,
   ActionResponseService,
-  ActionDown
+  ActionDown,
+  ActionLog
 } from '../concerns';
 
 import {
@@ -105,6 +106,10 @@ export default class Manager implements CanManage {
         break;
       case 'down':
         if(!isService) ActionDown(data, this.services, actualConnection, this);
+        break;
+      case 'log':
+        if(!isService) ActionLog(data, actualConnection, this.services, this);
+        break;
       default:
         break;
     }
