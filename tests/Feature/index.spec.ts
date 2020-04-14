@@ -108,12 +108,22 @@ describe('nous tests', () => {
             expect(parsed.services[0]).toEqual({
                 name: serviceOne.name,
                 id: serviceOne.id,
-                port: serviceOne.port
+                port: serviceOne.port,
+                host: {
+                    address: "::",
+                    family: "IPv6",
+                    port: serviceOne.port
+                }
             });
             expect(parsed.services[1]).toEqual({
                 name: serviceTwo.name,
                 id: serviceTwo.id,
-                port: serviceTwo.port
+                port: serviceTwo.port,
+                host: {
+                    address: "::",
+                    family: "IPv6",
+                    port: serviceTwo.port
+                }
             });
             done();
         })

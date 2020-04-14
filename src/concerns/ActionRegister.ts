@@ -3,6 +3,7 @@ export default function ActionRegister (data: Register, services: Array<any>): v
   services.push({
     name: data.service,
     id: data.payload.id,
-    port: data.payload.port
+    port: data.payload.port,
+    host: data.payload.host
   });
 }

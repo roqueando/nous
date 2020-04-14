@@ -1,5 +1,5 @@
 import {Log} from '../typos';
-import {Socket} from 'net';
+import {Socket, AddressInfo} from 'net';
 import Manager from '../core/Manager';
 
 export default function ActionLog (data: Log, conn: Socket, services: Array<any>, manager: Manager) {
@@ -9,7 +9,8 @@ export default function ActionLog (data: Log, conn: Socket, services: Array<any>
       manager: {
         port: manager.port,
         id: '#',
-        name: 'Manager'
+        name: 'Manager',
+        host: manager.server.address()
       }
     }
     conn.write(JSON.stringify(obj));
@@ -20,7 +21,7 @@ export default function ActionLog (data: Log, conn: Socket, services: Array<any>
     const obj = {
       name: node[0].name,
       ports: node.map(service => service.port).join(", "),
-      nodes: node.length
+      nodes: node.length,
     }
 
     conn.write(JSON.stringify(obj));

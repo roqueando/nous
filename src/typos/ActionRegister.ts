@@ -2,7 +2,12 @@ type ActionRegister = {
   service: string,
   payload: {
     id: string,
-    port: number
+    port: number,
+    host: {
+      port: number,
+      family: string,
+      address: string
+    }
   }
 }
 
