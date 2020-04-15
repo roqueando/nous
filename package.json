@@ -1,6 +1,6 @@
 {
     "name": "@roqueando/nous",
-    "version": "0.5.0",
+    "version": "0.5.2",
     "description": "Un orquestre parmi nous",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "npx ts-node-dev --respawn --transpileOnly src/index.ts",
         "start": "npx ts-node src/index.ts",
-        "test": "jest --forceExit",
+        "test": "jest --forceExit --no-cache",
         "build": "npx tsc --build",
         "prepare": "rm -rf dist && npm run build",
         "prepublishOnly": "npm test"
@@ -21,6 +21,7 @@
         "@types/jest": "^25.1.4",
         "@types/node": "^13.9.1",
         "jest": "^25.1.0",
+        "jest-runtime": "^25.3.0",
         "jest-serial-runner": "^1.1.0",
         "nodemon": "^2.0.2",
         "readme-md-generator": "^1.0.0",
@@ -29,5 +30,10 @@
         "ts-node-dev": "^1.0.0-pre.44",
         "typescript": "^3.8.3"
     },
-    "keywords": ["distributed", "framework", "nous", "node"]
+    "keywords": [
+        "distributed",
+        "framework",
+        "nous",
+        "node"
+    ]
 }

@@ -88,6 +88,60 @@ describe('nous tests', () => {
         expect(manager.services.length).toBeGreaterThan(0);
     });
 
+
+    test('should return a log with all correctly infos', (done) => {
+        const client = createConnection({port: manager.port});
+        client.write(JSON.stringify({
+            isService: false,
+            action: 'log',
+            payload: {
+                service: null
+            }
+        }));
+        client.on('data', payload => {
+            const parsed = JSON.parse(payload.toString());
+            const host_1 = JSON.parse(parsed.services[0].host);
+            const host_2 = JSON.parse(parsed.services[1].host);
+
+            expect(parsed.manager.id).toBe("#");
+            expect(parsed.manager.name).toBe("Manager");
+            expect(parsed.manager.port).toBe(manager.port);
+
+            // services
+            expect(parsed.services[0]).toStrictEqual({
+                name: serviceOne.name,
+                id: serviceOne.id,
+                port: serviceOne.port,
+                host: JSON.stringify(host_1),
+            });
+            expect(parsed.services[1]).toStrictEqual({
+                name: serviceTwo.name,
+                id: serviceTwo.id,
+                port: serviceTwo.port,
+                host: JSON.stringify(host_2),
+            });
+            done();
+        })
+    });
+
+    test('should return a log with one correct info', done => {
+        const client = createConnection({port: manager.port});
+        client.write(JSON.stringify({
+            isService: false,
+            action: 'log',
+            payload: {
+                service: 'HomeTest'
+            }
+        }));
+        client.on('data', payload => {
+            const parsed = JSON.parse(payload.toString());
+            expect(parsed.name).toBe(serviceOne.name);
+            expect(parsed.ports).toBe(`${serviceOne.port}`);
+            expect(parsed.nodes).toBe(1);
+            done();
+        })
+    });
+
     test('should send a message to all services to down server', () => {
         const token = new Token().getToken();
         const client = createConnection({ port: manager.port  });
@@ -106,6 +160,7 @@ describe('nous tests', () => {
             expect(serviceOne.server.listening).toBeFalsy();
             expect(manager.server.listening).toBeFalsy();
             done();
-        }, 3000);
+        }, 1000);
     });
+
 });
