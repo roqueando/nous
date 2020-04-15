@@ -100,30 +100,25 @@ describe('nous tests', () => {
         }));
         client.on('data', payload => {
             const parsed = JSON.parse(payload.toString());
+            const host_1 = JSON.parse(parsed.services[0].host);
+            const host_2 = JSON.parse(parsed.services[1].host);
+
             expect(parsed.manager.id).toBe("#");
             expect(parsed.manager.name).toBe("Manager");
             expect(parsed.manager.port).toBe(manager.port);
-            
+
             // services
-            expect(parsed.services[0]).toEqual({
+            expect(parsed.services[0]).toStrictEqual({
                 name: serviceOne.name,
                 id: serviceOne.id,
                 port: serviceOne.port,
-                host: {
-                    address: "::",
-                    family: "IPv6",
-                    port: serviceOne.port
-                }
+                host: JSON.stringify(host_1),
             });
-            expect(parsed.services[1]).toEqual({
+            expect(parsed.services[1]).toStrictEqual({
                 name: serviceTwo.name,
                 id: serviceTwo.id,
                 port: serviceTwo.port,
-                host: {
-                    address: "::",
-                    family: "IPv6",
-                    port: serviceTwo.port
-                }
+                host: JSON.stringify(host_2),
             });
             done();
         })

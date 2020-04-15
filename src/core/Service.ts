@@ -110,7 +110,7 @@ export default class Service {
         payload: {
           id: this.id,
           port: port,
-          host: this.server.address()
+          host: JSON.stringify(this.server.address())
         }
       }));
     }
