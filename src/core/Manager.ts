@@ -1,18 +1,16 @@
 import CanManage from '../contracts/CanManage';
 
 import {
-  Register,
-  DataService,
-  ResponseService,
-  DownService
-} from '../typos';
-
-import Token from './Token';
+  ActionRegister,
+  ActionService,
+  ActionResponseService,
+  ActionDown,
+  ActionLog
+} from '../concerns';
 
 import {
   createServer,
   Socket,
-  createConnection,
   Server
 } from 'net';
 
@@ -98,89 +96,23 @@ export default class Manager implements CanManage {
   private action(isService: boolean, action: string, data: any, actualConnection: Socket): void {
     switch(action) {
       case 'register':
-        if (isService) this.actionRegister(data);
+        if (isService) ActionRegister(data, this.services);
         break;
       case 'response data service':
-        if (isService) this.actionResponseDataService(data);
+        if (isService) ActionResponseService(data, this.clients);
         break;
       case 'data service':
-        if (!isService) this.actionDataService(data, actualConnection);
+        if (!isService) ActionService(data, this.services, actualConnection);
         break;
       case 'down':
-        if(!isService) this.actionDownService(data, actualConnection);
+        if(!isService) ActionDown(data, this.services, actualConnection, this);
+        break;
+      case 'log':
+        if(!isService) ActionLog(data, actualConnection, this.services, this);
+        break;
       default:
         break;
     }
-  }
-
-  private actionDownService(data: DownService, conn: Socket): void {
-    const verified = Token.verify(data.payload.from);
-    if(verified) {
-      this.services.forEach(item => {
-        const socket = createConnection({port: item.port});
-        socket.write(JSON.stringify({
-          action: 'down',
-        }));
-        conn.write('OK');
-        this.down();
-      })
-    }
-  }
-
-  /**
-   * @function actionRegister
-   * @private
-   * @param {Register} data
-   * @returns {void}
-   * @description Register a service into Manager's service list.
-   */
-  private actionRegister(data: Register): void {
-    this.services.push({
-      name: data.service,
-      id: data.payload.id,
-      port: data.payload.port
-    });
-  }
-
-  /**
-   * @function actionDataService
-   * @private
-   * @param {DataService} data
-   * @returns {void}
-   * @description Get the payload from client and sends
-   * to service.
-   */
-  private actionDataService(data: DataService, conn: Socket): void {
-    const filtered = this.services.length > 0
-      ? this.services.filter(
-        service => service && (this.toTitleCase(service.name) === this.toTitleCase(data.service))
-      )
-        : [];
-
-    if(filtered.length > 0) {
-      const node = filtered[Math.floor(Math.random() * filtered.length)]; // basic balance
-      const service = createConnection({port: node.port});
-      service.write(JSON.stringify({
-        serviceId: node.id,
-        payload: {
-          action: data.payload.action,
-          remotePort: conn.remotePort,
-          parameters: data.payload.parameters
-        }
-      }));
-    }
-  }
-
-  /**
-   * @function actionResponseDataService
-   * @private
-   * @param {ResponseService} data
-   * @returns {void}
-   * @description Write a tcp packet to the client
-   */
-  private actionResponseDataService(data: ResponseService): void {
-    const filteredClients = this.clients.filter(client => data.payload.remotePort === client.remotePort);
-    filteredClients[0].write(data.payload.result);
   }
 
   /** @private
@@ -203,7 +135,7 @@ export default class Manager implements CanManage {
    * @description puts string on title case
    * @returns {string}
    */
-  private toTitleCase(str: string): string {
+  public static toTitleCase(str: string): string {
     return str.replace(
       /\w\S*/g,
       function(txt) {

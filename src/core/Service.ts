@@ -109,7 +109,8 @@ export default class Service {
         isService: true,
         payload: {
           id: this.id,
-          port: port
+          port: port,
+          host: JSON.stringify(this.server.address())
         }
       }));
     }
