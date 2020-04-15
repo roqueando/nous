@@ -20,7 +20,7 @@ export default function ActionLog (data: Log, conn: Socket, services: Array<any>
     );
     const obj = {
       name: node[0].name,
-      ports: node.map(service => service.port).join(", "),
+      ports: node.map(service => service.port).join("\n"),
       nodes: node.length,
     }
 
