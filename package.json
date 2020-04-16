@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "npx ts-node-dev --respawn --transpileOnly src/index.ts",
         "start": "npx ts-node src/index.ts",
-        "test": "jest --forceExit --no-cache",
+        "test": "jest --forceExit --runInBand --no-cache",
         "build": "npx tsc --build",
         "prepare": "rm -rf dist && npm run build",
         "prepublishOnly": "npm test"
@@ -30,10 +30,5 @@
         "ts-node-dev": "^1.0.0-pre.44",
         "typescript": "^3.8.3"
     },
-    "keywords": [
-        "distributed",
-        "framework",
-        "nous",
-        "node"
-    ]
+    "keywords": ["distributed", "framework", "nous", "node"]
 }
