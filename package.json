@@ -1,6 +1,6 @@
 {
     "name": "@roqueando/nous",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "Un orquestre parmi nous",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -30,5 +30,10 @@
         "ts-node-dev": "^1.0.0-pre.44",
         "typescript": "^3.8.3"
     },
-    "keywords": ["distributed", "framework", "nous", "node"]
+    "keywords": [
+        "distributed",
+        "framework",
+        "nous",
+        "node"
+    ]
 }
