@@ -4,6 +4,7 @@ import helpers from '../helpers';
 import Service from '../../src/core/Service';
 import Token from '../../src/core/Token';
 import { setTimeout } from 'timers';
+import Helper from '../../src/core/Helper';
 
 describe('nous tests', () => {
     let manager: Manager;
@@ -60,7 +61,7 @@ describe('nous tests', () => {
             }
         }));
         client.on('data', payload => {
-            expect(payload.toString()).toBe("Hello John");
+            expect(Helper.decode(payload.toString())).toBe("Hello John");
             done();
         });
     });
@@ -79,7 +80,7 @@ describe('nous tests', () => {
             }
         }));
         client.on('data', payload => {
-            expect(payload.toString()).toBe("Aloha John");
+            expect(Helper.decode(payload.toString())).toBe("Aloha John");
             done();
         });
     })

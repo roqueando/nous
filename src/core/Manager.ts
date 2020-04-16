@@ -1,4 +1,5 @@
 import CanManage from '../contracts/CanManage';
+import Helper from './Helper';
 
 import {
   ActionRegister,
@@ -70,7 +71,7 @@ export default class Manager implements CanManage {
    */
   protected handleConnection(connection: Socket) {
     connection.on('data', payload => {
-      if(this.isJson(payload.toString())) {
+      if(Helper.isJson(payload.toString())) {
         const parsed = JSON.parse(payload.toString());
         // when is client, save client
         if(!parsed.isService) {
@@ -115,32 +116,4 @@ export default class Manager implements CanManage {
     }
   }
 
-  /** @private
-   * @function isJson
-   * @description check if string is a JSON
-   * @returns {Boolean}
-   */
-  private isJson(string: string): boolean {
-    try {
-      JSON.parse(string);
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * @private
-   * @function toTitleCase
-   * @description puts string on title case
-   * @returns {string}
-   */
-  public static toTitleCase(str: string): string {
-    return str.replace(
-      /\w\S*/g,
-      function(txt) {
-        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-      }
-    );
-  }
 }

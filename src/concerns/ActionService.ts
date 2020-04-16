@@ -1,11 +1,11 @@
 import {DataService} from '../typos';
 import {createConnection, Socket} from 'net';
-import Manager from '../core/Manager';
+import Helper from '../core/Helper';
 
 export default function ActionService(data: DataService, services: Array<any>, conn: Socket) {
     const filtered = services.length > 0
       ? services.filter(
-        service => service && (Manager.toTitleCase(service.name) === Manager.toTitleCase(data.service))
+        service => service && (Helper.toTitleCase(service.name) === Helper.toTitleCase(data.service))
       )
         : [];
 

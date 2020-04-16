@@ -1,6 +1,7 @@
 import {Log} from '../typos';
-import {Socket, AddressInfo} from 'net';
+import {Socket} from 'net';
 import Manager from '../core/Manager';
+import Helper from '../core/Helper';
 
 export default function ActionLog (data: Log, conn: Socket, services: Array<any>, manager: Manager) {
   if(!data.payload.service) {
@@ -16,7 +17,7 @@ export default function ActionLog (data: Log, conn: Socket, services: Array<any>
     conn.write(JSON.stringify(obj));
   } else {
     const node = services.filter(
-      service => Manager.toTitleCase(service.name) === Manager.toTitleCase(data.payload.service)
+      service => Helper.toTitleCase(service.name) === Helper.toTitleCase(data.payload.service)
     );
     const obj = {
       name: node[0].name,

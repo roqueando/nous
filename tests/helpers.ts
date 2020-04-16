@@ -19,13 +19,15 @@ const helpers = {
         .filter((file) => {
             return file !== '.gitkeep';
         });
-        files.forEach(item => {
-            const file = require(`${SERVICE_PATH}/${item}`);
-            const [className] = item.split('.');
-            const service = new file.default();
-            service.setName(className);
-            service.run();
-            services.push(service);
+        files.forEach((item: any) => {
+            if(!fs.lstatSync(`${SERVICE_PATH}/${item}`).isDirectory()) {
+                const file = require(`${SERVICE_PATH}/${item}`);
+                const [className] = item.split('.');
+                const service = new file.default();
+                service.setName(className);
+                service.run();
+                services.push(service);
+            } 
         });
         return services;
     },
