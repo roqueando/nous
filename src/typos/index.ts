@@ -4,6 +4,7 @@ import ActionResponseDataService from './ActionResponseDataService';
 import ActionDownServices from './ActionDownServices';
 import OwnPayload from './OwnPayload';
 import ActionDataLog from './ActionDataLog';
+import ClientServicePayload from './ClientServicePayload';
 
 export {
   ActionRegister as Register,
@@ -11,5 +12,6 @@ export {
   ActionResponseDataService as ResponseService,
   ActionDownServices as DownService,
   OwnPayload as Payload,
-  ActionDataLog as Log
+  ActionDataLog as Log,
+  ClientServicePayload as ClientPayload
 }

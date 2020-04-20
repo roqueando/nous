@@ -4,13 +4,14 @@ import helpers from '../helpers';
 import Service from '../../src/core/Service';
 import Token from '../../src/core/Token';
 import { setTimeout } from 'timers';
-import Helper from '../../src/core/Helper';
+import Client from '../../src/core/Client';
 
 describe('nous tests', () => {
     let manager: Manager;
     const PORT = 8080;
     let serviceOne: Service;
     let serviceTwo: Service;
+    let client: Client;
 
     beforeAll(() => {
         manager = new Manager(PORT);
@@ -19,6 +20,7 @@ describe('nous tests', () => {
         const [firstService, secondService] = helpers.upServices();
         serviceOne = firstService;
         serviceTwo = secondService;
+        client = new Client();
     })
 
     afterAll(() => {
@@ -47,42 +49,26 @@ describe('nous tests', () => {
         expect(serviceTwo.server.listening).toBeTruthy();
     });
 
-    test('should send data to a service', (done) => {
-        const client = createConnection({ port: manager.port  });
-        client.write(JSON.stringify({
-            service: 'HomeTest',
-            action: 'data service',
-            isService: false,
-            payload: {
+    test('should send data to a service', async (done) => {
+        setTimeout(async () => {
+            const result = await client.send("HomeTest", {
                 action: 'hello',
-                parameters: [
-                    'John'
-                ]
-            }
-        }));
-        client.on('data', payload => {
-            expect(Helper.decode(payload.toString())).toBe("Hello John");
+                parameters: ['John']
+            });
+            expect(result).toBe("Hello John");
             done();
-        });
+        }, 10);
     });
 
     test('should send data to second service', done => {
-        const client = createConnection({port: manager.port});
-        client.write(JSON.stringify({
-            service: 'SecondTest',
-            action: 'data service',
-            isService: false,
-            payload: {
+        setTimeout(async () => {
+            const result = await client.send("SecondTest", {
                 action: 'say',
-                parameters: [
-                    'John'
-                ],
-            }
-        }));
-        client.on('data', payload => {
-            expect(Helper.decode(payload.toString())).toBe("Aloha John");
+                parameters: ['John']
+            });
+            expect(result).toBe("Aloha John");
             done();
-        });
+        }, 10);
     })
 
     test('should manager have services on list', () => {
