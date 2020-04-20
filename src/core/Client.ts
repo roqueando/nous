@@ -1,5 +1,5 @@
 import {createConnection, Socket} from 'net';
-import {DataService} from '../typos';
+import {ClientPayload, DataService} from '../typos';
 
 export default class Client {
   public host: string;
@@ -12,7 +12,14 @@ export default class Client {
     this.socket = createConnection({host: this.host, port: this.port});
   }
 
-  public send(data: DataService): Promise<any> {
+  public send(service: string, payload: ClientPayload): Promise<any> {
+    const data: DataService = {
+      service,
+      action: "data service",
+      isService: false,
+      remotePort: null,
+      payload
+    };
     return new Promise((resolve, reject) => {
       this.socket.write(JSON.stringify(data));
       this.socket.on('data', payload => {

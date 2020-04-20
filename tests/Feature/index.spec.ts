@@ -4,9 +4,7 @@ import helpers from '../helpers';
 import Service from '../../src/core/Service';
 import Token from '../../src/core/Token';
 import { setTimeout } from 'timers';
-import Helper from '../../src/core/Helper';
 import Client from '../../src/core/Client';
-import {DataService} from '../../src/typos';
 
 describe('nous tests', () => {
     let manager: Manager;
@@ -52,38 +50,22 @@ describe('nous tests', () => {
     });
 
     test('should send data to a service', async (done) => {
-        const obj: DataService = {
-            action: 'data service',
-            service: 'HomeTest',
-            isService: false,
-            remotePort: null,
-            payload: {
+        setTimeout(async () => {
+            const result = await client.send("HomeTest", {
                 action: 'hello',
                 parameters: ['John']
-            }
-        }
-        setTimeout(async () => {
-            const result = await client.send(obj);
+            });
             expect(result).toBe("Hello John");
             done();
         }, 10);
     });
 
     test('should send data to second service', done => {
-        const obj: DataService = {
-            service: 'SecondTest',
-            action: 'data service',
-            remotePort:null,
-            isService: false,
-            payload: {
-                action: 'say',
-                parameters: [
-                    'John'
-                ],
-            }
-        }
         setTimeout(async () => {
-            const result = await client.send(obj);
+            const result = await client.send("SecondTest", {
+                action: 'say',
+                parameters: ['John']
+            });
             expect(result).toBe("Aloha John");
             done();
         }, 10);
