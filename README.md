@@ -1,4 +1,10 @@
-<h1 align="center">bienvenue à nous 👋</h1>
+<div align="center">
+  <img alt="Version" src="logo.svg" alt="nous logo" width="20%">
+</div>
+
+<h1 align="center">
+  bienvenue à nous 👋
+</h1>
 <p>
   <a href="https://www.npmjs.com/package/@roqueando/nous" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@roqueando/nous.svg">
