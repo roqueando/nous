@@ -5,21 +5,25 @@ import Service from '../../src/core/Service';
 import Token from '../../src/core/Token';
 import { setTimeout } from 'timers';
 import Client from '../../src/core/Client';
+import * as http from 'http';
+import * as querystring from 'querystring';
 
 describe('nous tests', () => {
     let manager: Manager;
     const PORT = 8080;
     let serviceOne: Service;
     let serviceTwo: Service;
+    let webService: Service;
     let client: Client;
 
     beforeAll(() => {
         manager = new Manager(PORT);
         manager.run();
 
-        const [firstService, secondService] = helpers.upServices();
+        const [firstService, secondService, thirdService] = helpers.upServices();
         serviceOne = firstService;
         serviceTwo = secondService;
+        webService = thirdService;
         client = new Client();
     })
 
@@ -129,6 +133,32 @@ describe('nous tests', () => {
         })
     });
 
+    test('should up and receive a http response', (done) => {
+        expect(webService.getType()).toBe('http');
+        const postData = querystring.stringify({
+            msg: "Hello!"
+        });
+        const opts = {
+            port: webService.port,
+            path: '/posttest',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+        const req = http.request(opts, (res) => {
+            res.setEncoding('utf8');
+            res.on('data', chunk => {
+                expect(chunk).toBe('teste');
+                done();
+            })
+        })
+
+        req.write(postData);
+        req.end();
+    });
+
     test('should send a message to all services to down server', () => {
         const token = new Token().getToken();
         const client = createConnection({ port: manager.port  });
@@ -147,7 +177,7 @@ describe('nous tests', () => {
             expect(serviceOne.server.listening).toBeFalsy();
             expect(manager.server.listening).toBeFalsy();
             done();
-        }, 1000);
+        }, 10);
     });
 
 });
