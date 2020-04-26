@@ -2,16 +2,14 @@ import {
   createServer,
   createConnection,
   Socket,
-  Server
 } from 'net';
 import Helper from './Helper';
 
 import {
   createServer as createHTTP,
-  RequestOptions,
-  ServerResponse
 } from 'http';
-import {parse} from 'querystring';
+
+import Router from './Router';
 
 export default class Service {
 
@@ -48,6 +46,7 @@ export default class Service {
   /** @var {Number} quantity of nodes */
   protected quantity: number = 1;
 
+  public router: Router;
   /**
    * @var Server server
    * Handles all tcp packet
@@ -55,7 +54,10 @@ export default class Service {
    */
   public server: any = createServer(connection => this.handleConnection(connection));
 
-  public HTTPServer: any = createHTTP(this.handleHTTPRequest);
+  public HTTPServer: any = createHTTP((req, res) => {
+    let handler = this.router.handle(req);
+    this.router.process(req, res, handler);
+  });
 
   /** @var Bool ignore
    * Set true to not run this service first
@@ -79,8 +81,10 @@ export default class Service {
   /** @var Bool isRegistered **/
   public isRegistered: boolean = false;
 
-  constructor(port: number = 0) {
+
+  constructor(port: number = 0, router?: Router) {
     this.port = port;
+    this.router = router;
     return this;
   }
 
@@ -173,29 +177,6 @@ export default class Service {
   }
 
   protected handleHTTPRequest(request: any, response: any) {
-    switch(request.method) {
-      case 'GET':
-        //TODO: get path and hit on service function
-        //      if have parameters like POST below
-        //      pass to function parameters.
-        response.write('Heelo');
-        break;
-      case 'POST':
-        request.on('data', (chunk: any) => {
-          const parsed = parse(chunk.toString());
-          // TODO: response correctly
-          response.write('teste');
-          response.end();
-        })
-        break;
-      case 'PUT':
-        break;
-      case 'DELETE':
-        break;
-      default:
-        response.setHeader("Content-Type", "application/json");
-        return response.write({error: "Only request GET, POST, PUT, DELETE"}).end();
-    }
   }
 
   public getQuantity(): number {

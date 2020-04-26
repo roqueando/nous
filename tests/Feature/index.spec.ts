@@ -133,14 +133,27 @@ describe('nous tests', () => {
         })
     });
 
-    test('should up and receive a http response', (done) => {
+    test('should up and receive a http response', () => {
         expect(webService.getType()).toBe('http');
+        expect(webService.HTTPServer.listening).toBeTruthy();
+    });
+
+    test('should hit a GET request on webService', (done) => {
+        http.get(`http://127.0.0.1:${webService.port}/hello`, res => {
+            res.on('data', chunk => {
+                expect(chunk.toString()).toBe('<h1>Hello</h1>')
+                done();
+            })
+        });
+    });
+
+    test('should hit a POST request on webService',  (done) => {
         const postData = querystring.stringify({
-            msg: "Hello!"
+            name: "John"
         });
         const opts = {
             port: webService.port,
-            path: '/posttest',
+            path: '/say',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -150,7 +163,7 @@ describe('nous tests', () => {
         const req = http.request(opts, (res) => {
             res.setEncoding('utf8');
             res.on('data', chunk => {
-                expect(chunk).toBe('teste');
+                expect(chunk).toBe('Aloha John');
                 done();
             })
         })
