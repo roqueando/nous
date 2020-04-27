@@ -23,7 +23,7 @@ const helpers = {
             if(!fs.lstatSync(`${SERVICE_PATH}/${item}`).isDirectory()) {
                 const file = require(`${SERVICE_PATH}/${item}`);
                 const [className] = item.split('.');
-                const service = new file.default();
+                const service = new file();
                 service.setName(className);
                 service.run();
                 services.push(service);

@@ -2,8 +2,14 @@ import {
   createServer,
   createConnection,
   Socket,
-  Server
 } from 'net';
+import Helper from './Helper';
+
+import {
+  createServer as createHTTP,
+} from 'http';
+
+import Router from './Router';
 
 export default class Service {
 
@@ -40,12 +46,18 @@ export default class Service {
   /** @var {Number} quantity of nodes */
   protected quantity: number = 1;
 
+  public router: Router;
   /**
    * @var Server server
    * Handles all tcp packet
    * and return to Manager
    */
   public server: any = createServer(connection => this.handleConnection(connection));
+
+  public HTTPServer: any = createHTTP((req, res) => {
+    let handler = this.router.handle(req);
+    this.router.process(req, res, handler);
+  });
 
   /** @var Bool ignore
    * Set true to not run this service first
@@ -69,8 +81,10 @@ export default class Service {
   /** @var Bool isRegistered **/
   public isRegistered: boolean = false;
 
-  constructor(port: number = 0) {
+
+  constructor(port: number = 0, router?: Router) {
     this.port = port;
+    this.router = router;
     return this;
   }
 
@@ -130,13 +144,16 @@ export default class Service {
 
     if(this.type === this.HTTP) {
       // create http server
+      this.HTTPServer.listen(this.port || null);
+      this.register(this.HTTPServer.address().port);
+      this.isRunning = true;
     }
     return this;
   }
 
   protected handleConnection(connection: Socket) {
     connection.on('data', data => {
-      if(this.isJson(data.toString())) {
+      if(Helper.isJson(data.toString())) {
         const parsed = JSON.parse(data.toString());
         if(parsed.action == 'down') {
           this.down();
@@ -159,18 +176,14 @@ export default class Service {
     });
   }
 
+  protected handleHTTPRequest(request: any, response: any) {
+  }
+
   public getQuantity(): number {
     return this.quantity;
   }
 
-  /** isJson
-   */
-  private isJson(string: string): boolean {
-    try {
-      JSON.parse(string);
-    } catch (e) {
-      return false;
-    }
-    return true;
+  public getType() {
+    return this.type;
   }
 }
