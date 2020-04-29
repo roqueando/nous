@@ -18,6 +18,8 @@ export default class Router {
     let url = parse(request.url, true);
     let handler = this.handlers[url.pathname];
 
+    // TODO: create a route parameters handling
+    console.log(url);
     if(request.method !== this.handleMethods[url.pathname]) throw new Error(`Cannot ${request.method} ${url.pathname}`);
     if(!handler || typeof handler === 'undefined') throw new Error("Handler not defined")
     return handler;
@@ -34,6 +36,7 @@ export default class Router {
    *
    */
   public process(req: any, res: any, handler: Function) {
+    let url = parse(req.url, true);
     let params = null;
     let body = []
     req.on('data', chunk => {
