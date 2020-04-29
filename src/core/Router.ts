@@ -23,13 +23,27 @@ export default class Router {
     return handler;
   }
 
-  public process(req, res, handler) {
+  /**
+   * @function process
+   * @param {Request} req
+   * @param {Response} res
+   * @param {Function} handler callback with req, res parameters
+   *
+   * @description process all requests and return a parsed body.
+   * *** TODO: apply middlewares too ***
+   *
+   */
+  public process(req: any, res: any, handler: Function) {
     let params = null;
-    return handler.apply(this, [req, res, params]);
+    let body = []
+    req.on('data', chunk => {
+      body.push(chunk);
+    }).on('end', data => {
+      let bufferData = Buffer.concat(body).toString('utf8');
+      const parsed = querystring.parse(bufferData);
+      req.body = parsed;
+
+      return handler.apply(this, [req, res, params]);
+    });
   };
-
-  public parse(queryString: string) {
-    return querystring.parse(queryString);
-  }
-
 }

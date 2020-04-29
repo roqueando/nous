@@ -54,6 +54,11 @@ export default class Service {
    */
   public server: any = createServer(connection => this.handleConnection(connection));
 
+  /**
+   * @public
+   * @var HTTPServer
+   * @description Handles all requests
+   */
   public HTTPServer: any = createHTTP((req, res) => {
     let handler = this.router.handle(req);
     this.router.process(req, res, handler);
@@ -151,6 +156,11 @@ export default class Service {
     return this;
   }
 
+  /**
+   * @function handleConnection
+   * @param {Socket} connection
+   * @description Handle TCP connection
+   */
   protected handleConnection(connection: Socket) {
     connection.on('data', data => {
       if(Helper.isJson(data.toString())) {
@@ -174,9 +184,6 @@ export default class Service {
         console.error("[SERVICE] Data is not a JSON");
       }
     });
-  }
-
-  protected handleHTTPRequest(request: any, response: any) {
   }
 
   public getQuantity(): number {

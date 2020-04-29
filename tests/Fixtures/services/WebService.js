@@ -11,10 +11,8 @@ class WebService extends Service {
     }
     
     say(req, res) { 
-        req.on('data', data => {
-            const {name} = router.parse(data.toString());
-            res.write(`Aloha ${name}`);
-        })
+        const { name } = req.body;
+        res.write(`Aloha ${name}`);
     }
 }
 
