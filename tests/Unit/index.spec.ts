@@ -47,4 +47,13 @@ describe('nous tests', () => {
             })
         });
     });
+
+    test('should get route parameters with more routes', async (done) => {
+        http.get(`http://127.0.0.1:${webService.port}/test/john/edit`, res => {
+            res.on('data', chunk => {
+                expect(chunk.toString()).toBe('Test john')
+                done();
+            })
+        });
+    });
 })
