@@ -17,21 +17,13 @@ export default class Router {
     let route = this.getFirstRoute(endpoint);
 
     // TODO: turn that split into a private function
-    let otherRoutes = endpoint.split('/').filter(item => !item.includes(":") && item !== '');
+    let splitedRoutes = endpoint.split('/').filter(item => item !== '');
 
     this.routeParameters[route] = parameters;
     if(this.routeParameters[route].length > 0) {
-      this.routeHandler[route] = {};
-      for(let param of parameters) {
-        this.routeHandler[route][param] = 'parameter';
-      }
-
-      for(let otherRoute of otherRoutes) {
-        if(!(otherRoute == route)) {
-          this.routeHandler[route][otherRoute] = 'route_name';
-        }
-      }
+      this.routeHandler[route] = splitedRoutes;
     }
+
   }
 
   // return a request handler
@@ -43,8 +35,7 @@ export default class Router {
     // check if route have parameters
     if(this.routeParameters[route].length > 0) {
       // get parameters and put
-      let spreadRoutes = Object.keys(this.routeHandler[route]);
-      let path = `/${route}/${spreadRoutes.join('/')}`;
+      let path = `/${this.routeHandler[route].join('/')}`;
       if(request.method !== this.handleMethods[path]) throw new Error(`Cannot ${request.method} ${path}`);
       handler = this.handlers[path];
       return handler;
@@ -67,16 +58,30 @@ export default class Router {
    */
   public process(req: any, res: any, handler: Function) {
     let url = parse(req.url, true);
-    let params = null;
+    let params = {};
     let body = []
 
-    // TODO: apply req paramereters on req.params
+    const route = this.getFirstRoute(url.pathname);
+    const routeParts = url.pathname.split('/').filter(item => item !== '');
+    let spreadRoutes = this.routeHandler[route].filter(item => !item.includes(':') && item !== '');
+    let spreadParameters = this.routeHandler[route].filter(item => item.includes(':'));
+
+    let counter = 0;
+    routeParts.forEach((item, index) => {
+      if(!(item == route || spreadRoutes.includes(item))) {
+        let param = spreadParameters[counter].replace(':', '');
+        params[param] = item;
+        counter++;
+      }
+    })
+
     req.on('data', chunk => {
       body.push(chunk);
     }).on('end', data => {
       let bufferData = Buffer.concat(body).toString('utf8');
       const parsed = querystring.parse(bufferData);
       req.body = parsed;
+      req.params = params;
 
       return handler.apply(this, [req, res, params]);
     });

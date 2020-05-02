@@ -9,12 +9,8 @@ router.register("GET", '/hello', (req, res) => {
     res.end();
 });
 
-router.register("GET", "/test/:name", (req, res) => {
-    res.write('teste');
-})
-
-router.register("GET", "/test/:name/edit", (req, res) => {
-    res.write('teste editing');
+router.register("GET", "/test/:name/edit/:id", (req, res) => {
+    res.write(`Test ${req.params.name} ${req.params.id}`);
 })
 
 module.exports = router;

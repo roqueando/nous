@@ -39,19 +39,10 @@ describe('nous tests', () => {
         }, 10);
     });
     
-    test('should get route parameters', async (done) => {
-        http.get(`http://127.0.0.1:${webService.port}/test/john`, res => {
-            res.on('data', chunk => {
-                expect(chunk.toString()).toBe('Test john')
-                done();
-            })
-        });
-    });
-
     test('should get route parameters with more routes', async (done) => {
-        http.get(`http://127.0.0.1:${webService.port}/test/john/edit`, res => {
+        http.get(`http://127.0.0.1:${webService.port}/test/john/edit/1`, res => {
             res.on('data', chunk => {
-                expect(chunk.toString()).toBe('Test john')
+                expect(chunk.toString()).toBe('Test john 1')
                 done();
             })
         });
