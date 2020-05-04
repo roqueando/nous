@@ -8,7 +8,6 @@ export default class Router {
   public handleMethods: object = {};
   public routeParameters: object = {};
   public routeHandler: object = {};
-  public ranking: object = {};
   public association: object = {};
 
   // register an endpoint on handlers object
@@ -16,7 +15,6 @@ export default class Router {
     this.handlers[endpoint] = callback;
     this.handleMethods[endpoint] = method;
     let parameters = this.getRouteParameters(endpoint);
-    let route = this.getFirstRoute(endpoint);
 
     // TODO: turn that split into a private function
     let splitedRoutes = endpoint.split('/').filter(item => item !== '');
@@ -25,22 +23,20 @@ export default class Router {
     if(this.routeParameters[endpoint].length > 0) {
       this.routeHandler[endpoint] = splitedRoutes;
     }
-    let keys = Object.keys(this.handlers);
-    const rank = this.classify(keys);
-    this.ranking = rank;
   }
 
   // return a request handler
   public handle(request: any) {
     let url = parse(request.url, true);
     let handler = this.handlers[url.pathname];
-    let route = this.getFirstRoute(url.pathname);
 
-    const path = url.pathname;
-    let endpoint = this.returnEndpoint(route, path);
+    const pathname = url.pathname;
+    let endpoint = this.returnEndpoint(pathname);
 
+    if(endpoint === 404) {
+      throw new Error(`${pathname} does not exists`);
+    }
     if(this.routeParameters[endpoint].length > 0) {
-      // get parameters and put
       let path = `/${this.routeHandler[endpoint].join('/')}`;
 
       if(request.method !== this.handleMethods[endpoint]) throw new Error(`Cannot ${request.method} ${path}`);
@@ -70,7 +66,7 @@ export default class Router {
 
     const route = this.getFirstRoute(url.pathname);
 
-    let endpoint = this.returnEndpoint(route, url.pathname);
+    let endpoint = this.returnEndpoint(url.pathname);
     if(this.routeParameters[endpoint].length > 0) {
       const routeParts = url.pathname.split('/').filter(item => item !== '');
       let spreadRoutes = this.routeHandler[endpoint].filter(item => !item.includes(':') && item !== '');
@@ -131,23 +127,37 @@ export default class Router {
     return classification;
   }
 
-  private returnEndpoint(route: string, path: string) {
+  private returnEndpoint(path: string) {
 
     let matcher = {};
 
-    let keys = Object.keys(this.handlers);
-    for(let key of keys) {
+    let routes = Object.keys(this.handlers);
+
+    for(let route of routes) {
       // solved for non-parameters routes
-      if(key == path) {
-        matcher[path] = key;
+      if(route == path) {
+        matcher[path] = route;
         break;
       }
-
       // parameters routes
-      let splitted = key.split('/').filter(item => item !== '');
+      let splitted = route.split('/').filter(item => item !== '');
+
+
+      if(route.includes(':')) {
+        let splitCurrentRoute = path.split('/').filter(item => item !== '');
+        let routeWithoutParameters = route.split('/').filter(item => !item.includes(':') && item !== '');
+        let intersection = splitCurrentRoute.filter(part => routeWithoutParameters.includes(part));
+
+        if(this.isEquals(intersection, routeWithoutParameters)) {
+          matcher[path] = route;
+          break;
+        }
+        matcher[path] = 404;
+        break;
+      }
       for(let part of splitted) {
         if(part.includes(':')) {
-          matcher[path] = key;
+          matcher[path] = route;
           break;
         }
       }
@@ -156,4 +166,7 @@ export default class Router {
     return endpoint;
   }
 
+  private isEquals(arr1: Array<string>, arr2: Array<string>) {
+    return JSON.stringify(arr1) == JSON.stringify(arr2);
+  }
 }

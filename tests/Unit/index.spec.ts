@@ -38,6 +38,17 @@ describe('nous tests', () => {
             done();
         }, 10);
     });
+
+    describe('Unique Routes', () => {
+        test('should not hit other route', async (done) => {
+            http.get(`http://127.0.0.1:${webService.port}/test`, res => {
+                res.on('data', chunk => {
+                console.log(chunk.toString());
+                done();
+            })
+            });
+        })
+    })
     
     test('should get route parameters with more routes', async (done) => {
         http.get(`http://127.0.0.1:${webService.port}/test/john/edit/1`, res => {
