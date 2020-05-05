@@ -7,12 +7,6 @@ class WebService extends Service {
         super(port, router);
         this.type = this.HTTP;
 
-        this.router.register("POST", '/say', this.say);
-    }
-    
-    say(req, res) { 
-        const { name } = req.body;
-        res.write(`Aloha ${name}`);
     }
 }
 
