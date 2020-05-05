@@ -13,4 +13,9 @@ router.register("GET", "/test/:name/edit/:id", (req, res) => {
     res.write(`Test ${req.params.name} ${req.params.id}`);
 })
 
+router.register("POST", '/say', (req, res) => { 
+    const { name } = req.body;
+    res.write(`Aloha ${name}`);
+});
+
 module.exports = router;

@@ -34,7 +34,7 @@ export default class Router {
     let endpoint = this.returnEndpoint(pathname);
 
     if(endpoint === 404) {
-      throw new Error(`${pathname} does not exists`);
+      this.error(`Route ${pathname} is not defined`);
     }
     if(this.routeParameters[endpoint].length > 0) {
       let path = `/${this.routeHandler[endpoint].join('/')}`;
@@ -67,6 +67,9 @@ export default class Router {
     const route = this.getFirstRoute(url.pathname);
 
     let endpoint = this.returnEndpoint(url.pathname);
+    if(endpoint === 404) {
+      this.error(`Route ${url.pathname} does not exiss`);
+    }
     if(this.routeParameters[endpoint].length > 0) {
       const routeParts = url.pathname.split('/').filter(item => item !== '');
       let spreadRoutes = this.routeHandler[endpoint].filter(item => !item.includes(':') && item !== '');
@@ -135,13 +138,10 @@ export default class Router {
 
     for(let route of routes) {
       // solved for non-parameters routes
-      if(route == path) {
+      if(routes.includes(path)) {
         matcher[path] = route;
         break;
       }
-      // parameters routes
-      let splitted = route.split('/').filter(item => item !== '');
-
 
       if(route.includes(':')) {
         let splitCurrentRoute = path.split('/').filter(item => item !== '');
@@ -155,12 +155,6 @@ export default class Router {
         matcher[path] = 404;
         break;
       }
-      for(let part of splitted) {
-        if(part.includes(':')) {
-          matcher[path] = route;
-          break;
-        }
-      }
     }
     let endpoint = matcher[path];
     return endpoint;
@@ -168,5 +162,8 @@ export default class Router {
 
   private isEquals(arr1: Array<string>, arr2: Array<string>) {
     return JSON.stringify(arr1) == JSON.stringify(arr2);
+  }
+  protected error(message: string) {
+    throw new Error(message);
   }
 }
