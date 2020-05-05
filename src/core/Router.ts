@@ -116,7 +116,7 @@ export default class Router {
           if(path.startsWith(':')) {
             ranking += 60;
           } else {
-            ranking += 60
+            ranking += 70
           }
         });
 
@@ -137,12 +137,25 @@ export default class Router {
     let routes = Object.keys(this.handlers);
 
     for(let route of routes) {
-      // solved for non-parameters routes
+
+      // check if current request path
+      // exists on routes array
       if(routes.includes(path)) {
         matcher[path] = route;
         break;
       }
 
+      // check if the request is a simple
+      // path like /customers and if that is not include
+      // return 404
+      if(path.split('/').filter(item => item !== '').length == 1) {
+        if(!routes.includes(path)) {
+          matcher[path] = 404;
+          break;
+        }
+      }
+
+      // if route on routes have parameter
       if(route.includes(':')) {
         let splitCurrentRoute = path.split('/').filter(item => item !== '');
         let routeWithoutParameters = route.split('/').filter(item => !item.includes(':') && item !== '');
@@ -153,9 +166,10 @@ export default class Router {
           break;
         }
         matcher[path] = 404;
-        break;
+        continue;
       }
     }
+    console.log(matcher);
     let endpoint = matcher[path];
     return endpoint;
   }
