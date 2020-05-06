@@ -169,7 +169,6 @@ export default class Router {
         continue;
       }
     }
-    console.log(matcher);
     let endpoint = matcher[path];
     return endpoint;
   }
