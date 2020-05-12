@@ -1,12 +1,12 @@
 import {parse} from 'url';
 import * as querystring from 'querystring';
 import {HTTPMethods} from '../typos';
+import Helper from './Helper';
 
 export default class Router {
 
   public handlers: object = {};
-  public handleMethods: object = {};
-  public routeParameters: object = {};
+  public handleMethods: object = {}; public routeParameters: object = {};
   public routeHandler: object = {};
   public association: object = {};
 
@@ -90,9 +90,24 @@ export default class Router {
     }).on('end', data => {
       let bufferData = Buffer.concat(body).toString('utf8');
       const parsed = querystring.parse(bufferData);
-      req.body = parsed;
+      
+      req.body = {};
+      const jsonData = Object.keys(parsed)[0];
+      if(!Helper.isJson(jsonData)) {
+        req.body = parsed;
+        req.params = params;
+
+        res.writeHead(200, {"Content-Type": "application/json"});
+        return handler.apply(this, [req, res, params]);
+      } 
+
+      const parsedJsonData = JSON.parse(jsonData);
+      Object.keys(parsedJsonData).forEach(jsonKey => {
+        req.body[jsonKey] = parsedJsonData[jsonKey];
+      }); 
       req.params = params;
 
+      res.writeHead(200, {"Content-Type": "application/json"});
       return handler.apply(this, [req, res, params]);
     });
   };

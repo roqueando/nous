@@ -55,4 +55,29 @@ describe('nous tests', () => {
             })
         });
     });
+
+    test('should hit a POST request on webService',  (done) => {
+        const postData = JSON.stringify({
+            name: "John"
+        });
+        const opts = {
+            port: webService.port,
+            path: '/say',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+        const req = http.request(opts, (res) => {
+            res.setEncoding('utf8');
+            res.on('data', chunk => {
+                expect(chunk).toBe('Aloha John');
+                done();
+            })
+        })
+
+        req.write(postData);
+        req.end();
+    });
 })

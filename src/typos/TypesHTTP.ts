@@ -1,5 +1,9 @@
-type TypesHTTP = {
-  method: string | "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+enum TypesHTTP {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE',
 }
 
 export default TypesHTTP;
