@@ -170,6 +170,7 @@ export default class Service {
         }
         if(parsed.serviceId === this.id) {
           let result: any;
+          //TODO: pass that check to a private function
           if(!(this[parsed.payload.action].constructor.name === "AsyncFunction")) {
             result =  this[parsed.payload.action](...parsed.payload.parameters);
             return this.socket.write(JSON.stringify({
