@@ -80,4 +80,15 @@ describe('nous tests', () => {
         req.write(postData);
         req.end();
     });
+
+    test('should execute an async function', (done) => {
+        setTimeout(async () => {
+            const result = await client.send("HomeTest", {
+                action: 'asynchronousFunc',
+                parameters: []
+            });
+            expect(result).toStrictEqual('Running async');
+            done();
+        }, 10);
+    });
 })

@@ -162,15 +162,29 @@ export default class Service {
    * @description Handle TCP connection
    */
   protected handleConnection(connection: Socket) {
-    connection.on('data', data => {
+    connection.on('data', async data => {
       if(Helper.isJson(data.toString())) {
         const parsed = JSON.parse(data.toString());
         if(parsed.action == 'down') {
           this.down();
         }
         if(parsed.serviceId === this.id) {
-          const result = this[parsed.payload.action](...parsed.payload.parameters);
-          this.socket.write(JSON.stringify({
+          let result: any;
+          if(!(this[parsed.payload.action].constructor.name === "AsyncFunction")) {
+            result =  this[parsed.payload.action](...parsed.payload.parameters);
+            return this.socket.write(JSON.stringify({
+              service: this.name,
+              action: 'response data service',
+              isService: true,
+              payload: {
+                result,
+                remotePort: parsed.payload.remotePort
+              }
+            }))
+          }
+          result = await this[parsed.payload.action](...parsed.payload.parameters);
+
+          return this.socket.write(JSON.stringify({
             service: this.name,
             action: 'response data service',
             isService: true,

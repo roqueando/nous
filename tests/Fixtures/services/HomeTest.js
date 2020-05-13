@@ -14,6 +14,10 @@ class HomeTest extends Service {
     getBool(){
         return true;
     }
+
+    async asynchronousFunc() {
+        return "Running async";
+    }
 }
 
 module.exports = HomeTest;
