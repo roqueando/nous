@@ -1,6 +1,7 @@
 import Manager from '../../src/core/Manager';
 import helpers from '../helpers';
 import Service from '../../src/core/Service';
+import Token from '../../src/core/Token';
 import * as json from '../Fixtures/services/db/db.json';
 import Client from '../../src/core/Client';
 import * as http from 'http';
@@ -90,5 +91,16 @@ describe('nous tests', () => {
             expect(result).toStrictEqual('Running async');
             done();
         }, 10);
+    });
+
+    test('should create a Token with some payload and return decrypt', () => {
+        const tokenObject = new Token("ABC123", {
+            id: 1,
+            role: 'user'
+        });
+
+        const token = tokenObject.getToken();
+        const decoded = tokenObject.decrypt("ABC123", token);
+        expect(decoded.payload).toStrictEqual({id: 1, role: 'user'});
     });
 })

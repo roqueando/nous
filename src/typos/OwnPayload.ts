@@ -1,7 +1,8 @@
 type OwnPayload = {
-  iss: string,
+  iss ?: string,
   iat: number,
   exp: number,
+  payload ?: object
 }
 
 export default OwnPayload;
