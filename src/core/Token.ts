@@ -8,7 +8,7 @@ export default class Token {
   protected bufferedHeader: string;
   protected payload: string;
 
-  constructor(key?: string, data?: Payload) {
+  constructor(key?: string, data?: any) {
     this.key = key;
     this.header = {
       "typ": "JWT",
@@ -39,16 +39,28 @@ export default class Token {
 
     return valid === signature;
   }
-  private createPayload(data: Payload): string {
-    if(!data) {
-      let payload: Payload = {
-        iss: "nous.project",
-        iat: Date.now(),
-        exp: new Date().setMinutes(21600),
-      }
-      let buffer = JSON.stringify(payload);
-      return Buffer.from(buffer).toString('base64');
+
+  public decrypt(key: string, token: string): any {
+    const verified = Token.verify(token, key);
+    if(!verified) {
+      return new Error("Token invalid");
     }
-    return Buffer.from(JSON.stringify(data)).toString('base64');
+
+    const [header, payload] = token.split('.');
+    const decoded = JSON.parse(Buffer.from(payload, 'base64').toString());
+    return decoded;
+
+  }
+  private createPayload(data: any): string {
+    let initialJWTPayload: Payload = {
+      iss: "nous.project",
+      iat: Date.now(),
+      exp: new Date().setMinutes(21600),
+    }
+    const finalJWTPayload = {
+      ...initialJWTPayload,
+      payload: data
+    }
+    return Buffer.from(JSON.stringify(finalJWTPayload)).toString('base64');
   }
 }

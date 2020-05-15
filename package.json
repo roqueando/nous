@@ -1,6 +1,6 @@
 {
     "name": "@roqueando/nous",
-    "version": "0.7.0",
+    "version": "0.10.4",
     "description": "Un orquestre parmi nous",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "npx ts-node-dev --respawn --transpileOnly src/index.ts",
         "start": "npx ts-node src/index.ts",
-        "test": "jest --forceExit --runInBand --no-cache",
+        "test": "rm -rf dist && npm run build && jest --forceExit --runInBand --no-cache",
         "build": "npx tsc --build",
         "prepare": "rm -rf dist && npm run build",
         "prepublishOnly": "npm test"

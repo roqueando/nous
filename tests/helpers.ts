@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import Service from '../src/core/Service';
+import * as http from 'http';
 
 const SERVICE_PATH = path.resolve(__dirname, './Fixtures/services');
 
@@ -23,7 +24,7 @@ const helpers = {
             if(!fs.lstatSync(`${SERVICE_PATH}/${item}`).isDirectory()) {
                 const file = require(`${SERVICE_PATH}/${item}`);
                 const [className] = item.split('.');
-                const service = new file.default();
+                const service = new file();
                 service.setName(className);
                 service.run();
                 services.push(service);
@@ -31,6 +32,17 @@ const helpers = {
         });
         return services;
     },
+    httpGet: async (url: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            http.get(url, res => {
+                console.log(res);
+                res.on('data', chunk => {
+                    return resolve(chunk.toString);
+                })
+            });
+        });
+
+    }
 
 };
 

@@ -5,6 +5,7 @@ import ActionDownServices from './ActionDownServices';
 import OwnPayload from './OwnPayload';
 import ActionDataLog from './ActionDataLog';
 import ClientServicePayload from './ClientServicePayload';
+import TypesHTTP from './TypesHTTP';
 
 export {
   ActionRegister as Register,
@@ -13,5 +14,6 @@ export {
   ActionDownServices as DownService,
   OwnPayload as Payload,
   ActionDataLog as Log,
-  ClientServicePayload as ClientPayload
+  ClientServicePayload as ClientPayload,
+  TypesHTTP as HTTPMethods
 }
