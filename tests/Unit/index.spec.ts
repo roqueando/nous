@@ -103,4 +103,25 @@ describe('nous tests', () => {
         const decoded = tokenObject.decrypt("ABC123", token);
         expect(decoded.payload).toStrictEqual({id: 1, role: 'user'});
     });
+
+    test('should response a middleware', (done) => {
+        const opts = {
+            port: webService.port,
+            path: '/test/1',
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+        const req = http.request(opts, (res) => {
+            res.setEncoding('utf8');
+            res.on('data', chunk => {
+                expect(chunk).toBe('Aloha John');
+                done();
+            })
+        })
+
+        req.write(postData);
+        req.end();
+    });
 })

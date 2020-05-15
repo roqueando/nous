@@ -2,6 +2,7 @@ import {parse} from 'url';
 import * as querystring from 'querystring';
 import {HTTPMethods} from '../typos';
 import Helper from './Helper';
+import {setImmediate} from 'timers';
 
 export default class Router {
 
@@ -9,6 +10,7 @@ export default class Router {
   public handleMethods: object = {}; public routeParameters: object = {};
   public routeHandler: object = {};
   public association: object = {};
+  public middlewares: Array<Function> = [];
 
   // register an endpoint on handlers object
   public register(method: HTTPMethods, endpoint: string, callback: Function) {
@@ -23,6 +25,13 @@ export default class Router {
     if(this.routeParameters[endpoint].length > 0) {
       this.routeHandler[endpoint] = splitedRoutes;
     }
+  }
+
+  public use(middleware: Function) {
+    if(typeof middleware !== 'function') {
+      throw new Error("Middleware must be function!");
+    }
+    this.middlewares.push(middleware);
   }
 
   // return a request handler
@@ -60,10 +69,27 @@ export default class Router {
    *
    */
   public process(req: any, res: any, handler: Function) {
+    let index = 0;
     let url = parse(req.url, true);
     let params = {};
     let body = []
 
+    if(this.middlewares.length > 0) {
+      const next = (err = null) => {
+        if(err !== null) {
+          return setImmediate(() => new Error(err));
+        }
+        const layer = this.middlewares[index++];
+        setImmediate(() => {
+          try {
+           layer(req, res, next); 
+          } catch(error) {
+            next(error);
+          }
+        })
+      }
+      next();
+    }
     const route = this.getFirstRoute(url.pathname);
 
     let endpoint = this.returnEndpoint(url.pathname);
@@ -118,31 +144,6 @@ export default class Router {
 
   private getRouteParameters(endpoint: string): Array<string> {
     return endpoint.split('/').filter(string => string.includes(':'));
-  }
-
-  private classify(routes: Array<string>) {
-    const classification = {};
-
-    routes.forEach((route) => {
-      let ranking = 0;
-      route.split('/')
-        .filter(path => path.length)
-        .forEach(path => {
-          if(path.startsWith(':')) {
-            ranking += 60;
-          } else {
-            ranking += 70
-          }
-        });
-
-        if(classification[ranking]) {
-          classification[ranking].push(route);
-        } else {
-          classification[ranking] = [route];
-        }
-    })
-
-    return classification;
   }
 
   private returnEndpoint(path: string) {
