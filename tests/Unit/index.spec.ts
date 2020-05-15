@@ -120,8 +120,6 @@ describe('nous tests', () => {
                 done();
             })
         })
-
-        req.write(postData);
         req.end();
     });
 })
