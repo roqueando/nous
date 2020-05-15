@@ -1,7 +1,6 @@
 <div align="center">
   <img alt="Version" src="logo.svg" alt="nous logo" width="20%">
 </div>
-
 <h1 align="center">
   bienvenue 👋
 </h1>
@@ -17,7 +16,8 @@
   </a>
 </p>
 
-> Un orchestre parmi nous
+
+> Un orchestre parmi nous. beta.
 
 ## Install
 
