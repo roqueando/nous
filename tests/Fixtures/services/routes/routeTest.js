@@ -26,4 +26,9 @@ router.register("POST", '/say', (req, res) => {
     res.write(`Aloha ${name}`);
 });
 
+router.register("GET", '/middle', (req, res) => {
+    res.write(`Hey middleware ${req.test}`);
+    res.end();
+})
+
 module.exports = router;

@@ -104,4 +104,13 @@ describe('nous tests', () => {
         expect(decoded.payload).toStrictEqual({id: 1, role: 'user'});
     });
 
+    //TODO: searct why is hitting console log twice
+    test('should show middleware request parameter', (done) => {
+        http.get(`http://127.0.0.1:${webService.port}/middle`, res => {
+            res.on('data', chunk => {
+                expect(chunk.toString()).toBe('Hey middleware testing');
+                done();
+            })
+        });
+    });
 })

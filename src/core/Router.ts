@@ -65,7 +65,6 @@ export default class Router {
    * @param {Function} handler callback with req, res parameters
    *
    * @description process all requests and return a parsed body.
-   * *** TODO: apply middlewares too ***
    *
    */
   public process(req: any, res: any, handler: Function) {
@@ -80,13 +79,13 @@ export default class Router {
           return setImmediate(() => new Error(err));
         }
         const layer = this.middlewares[index++];
-        setImmediate(() => {
-          try {
-           layer(req, res, next); 
-          } catch(error) {
-            next(error);
-          }
-        })
+
+        try {
+          layer(req, res, next);
+          handler.apply(this, [req]);
+        } catch(error) {
+          next(error);
+        }
       }
       next();
     }
@@ -116,7 +115,7 @@ export default class Router {
     }).on('end', data => {
       let bufferData = Buffer.concat(body).toString('utf8');
       const parsed = querystring.parse(bufferData);
-      
+
       req.body = {};
       const jsonData = Object.keys(parsed)[0];
       if(!Helper.isJson(jsonData)) {
@@ -125,15 +124,16 @@ export default class Router {
 
         res.writeHead(200, {"Content-Type": "application/json"});
         return handler.apply(this, [req, res, params]);
-      } 
+      }
 
       const parsedJsonData = JSON.parse(jsonData);
       Object.keys(parsedJsonData).forEach(jsonKey => {
         req.body[jsonKey] = parsedJsonData[jsonKey];
-      }); 
+      });
       req.params = params;
 
       res.writeHead(200, {"Content-Type": "application/json"});
+
       return handler.apply(this, [req, res, params]);
     });
   };
