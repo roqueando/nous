@@ -82,7 +82,6 @@ export default class Router {
 
         try {
           layer(req, res, next);
-          handler.apply(this, [req]);
         } catch(error) {
           next(error);
         }
