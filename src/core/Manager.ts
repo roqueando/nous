@@ -1,3 +1,6 @@
+/**
+ * @author roqueando
+ */
 import CanManage from '../contracts/CanManage';
 import Helper from './Helper';
 

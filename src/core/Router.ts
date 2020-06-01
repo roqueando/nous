@@ -1,25 +1,68 @@
-import {parse} from 'url';
+/**
+ * @author roqueando
+ */
+
+import {parse, UrlWithParsedQuery} from 'url';
 import * as querystring from 'querystring';
 import {HTTPMethods} from '../typos';
 import Helper from './Helper';
 import {setImmediate} from 'timers';
 
+/**
+ * @class Router
+ * @description Make a router "express-like" for a HTTP service
+ */
 export default class Router {
 
+  /**
+   * @var handlers
+   * @type object
+   * @description Contains all routes with respectives functions
+   */
   public handlers: object = {};
-  public handleMethods: object = {}; public routeParameters: object = {};
+
+  /**
+   * @var handleMethods
+   * @type object
+   * @description Contains all HTTP methods from routes
+   */
+  public handleMethods: object = {};
+
+  /**
+   * @var routeParameters
+   * @type object
+   * @description Contains all parameters from routes
+   */
+  public routeParameters: object = {};
+
+  /**
+   * @var routeHandler
+   * @type object
+   * @description Contains the route parts if have any parameter
+   */
   public routeHandler: object = {};
-  public association: object = {};
+
+  /**
+   * @var middlewares
+   * @type Array<Function>
+   * @description Contains all middlewares
+   */
   public middlewares: Array<Function> = [];
 
-  // register an endpoint on handlers object
-  public register(method: HTTPMethods, endpoint: string, callback: Function) {
+
+  /**
+   * @method register
+   * @param {HTTPMethods} method HTTP method GET POST PUT DELETE
+   * @param {string} endpoint Route name like /endpoint
+   * @param {Function} callback Handler function for route
+   * @return {void}
+   */
+  public register(method: HTTPMethods, endpoint: string, callback: Function): void {
     this.handlers[endpoint] = callback;
     this.handleMethods[endpoint] = method;
-    let parameters = this.getRouteParameters(endpoint);
 
-    // TODO: turn that split into a private function
-    let splitedRoutes = endpoint.split('/').filter(item => item !== '');
+    let parameters = this.getRouteParameters(endpoint);
+    let splitedRoutes = this.splitRoute(endpoint);
 
     this.routeParameters[endpoint] = parameters;
     if(this.routeParameters[endpoint].length > 0) {
@@ -27,15 +70,24 @@ export default class Router {
     }
   }
 
-  public use(middleware: Function) {
+  /**
+   * @method use
+   * @param {Function} middleware A middleware function to all routes
+   * @return {void}
+   */
+  public use(middleware: Function): void {
     if(typeof middleware !== 'function') {
       throw new Error("Middleware must be function!");
     }
     this.middlewares.push(middleware);
   }
 
-  // return a request handler
-  public handle(request: any) {
+  /**
+   * @method handle
+   * @param {any} request A Incoming Request
+   * @return {Function} handler Returns a handler function with request, response
+   */
+  public handle(request: any): Function {
     let url = parse(request.url, true);
     let handler = this.handlers[url.pathname];
 
@@ -59,64 +111,46 @@ export default class Router {
   }
 
   /**
-   * @function process
-   * @param {Request} req
-   * @param {Response} res
+   * @method process
+   * @param {Request} req Incoming Request
+   * @param {Response} res Incoming Server Response
    * @param {Function} handler callback with req, res parameters
    *
-   * @description process all requests and return a parsed body.
-   *
+   * @description process all requests and return a parsed body, parsed parameters.
+   * @return {void}
    */
-  public process(req: any, res: any, handler: Function) {
-    let index = 0;
-    let url = parse(req.url, true);
+  public process(req: any, res: any, handler: Function): void {
+    const url = parse(req.url, true);
     let params = {};
     let body = []
 
-    if(this.middlewares.length > 0) {
-      const next = (err = null) => {
-        if(err !== null) {
-          return setImmediate(() => new Error(err));
-        }
-        const layer = this.middlewares[index++];
+    this.processMiddleware(req, res);
 
-        try {
-          layer(req, res, next);
-        } catch(error) {
-          next(error);
-        }
-      }
-      next();
-    }
     const route = this.getFirstRoute(url.pathname);
+    const endpoint = this.returnEndpoint(url.pathname);
 
-    let endpoint = this.returnEndpoint(url.pathname);
     if(endpoint === 404) {
-      this.error(`Route ${url.pathname} does not exiss`);
-    }
-    if(this.routeParameters[endpoint].length > 0) {
-      const routeParts = url.pathname.split('/').filter(item => item !== '');
-      let spreadRoutes = this.routeHandler[endpoint].filter(item => !item.includes(':') && item !== '');
-      let spreadParameters = this.routeHandler[endpoint].filter(item => item.includes(':'));
-
-      let counter = 0;
-      routeParts.forEach((item, index) => {
-        if(!(item == route || spreadRoutes.includes(item))) {
-          let param = spreadParameters[counter].replace(':', '');
-          params[param] = item;
-          counter++;
-        }
-      })
+      this.error(`Route ${url.pathname} does not exist`);
     }
 
-    req.on('data', chunk => {
+    params = this.handleRequestParameters(endpoint, url, route, params);
+
+    req.on('data', (chunk: any) => {
       body.push(chunk);
-    }).on('end', data => {
+    }).on('end', () => {
+      // get all body by buffer data
+      // and parse the querystring
       let bufferData = Buffer.concat(body).toString('utf8');
       const parsed = querystring.parse(bufferData);
 
+      // init req.body object inside Incoming Request
       req.body = {};
+
+      // get the possible JSON request
       const jsonData = Object.keys(parsed)[0];
+
+      // if not JSON request, just put the body
+      // on req.body and params on req.params
       if(!Helper.isJson(jsonData)) {
         req.body = parsed;
         req.params = params;
@@ -125,6 +159,9 @@ export default class Router {
         return handler.apply(this, [req, res, params]);
       }
 
+      // if JSON request, parse that
+      // and create a key for all JSON request keys into
+      // req.body
       const parsedJsonData = JSON.parse(jsonData);
       Object.keys(parsedJsonData).forEach(jsonKey => {
         req.body[jsonKey] = parsedJsonData[jsonKey];
@@ -137,36 +174,56 @@ export default class Router {
     });
   };
 
-  private getFirstRoute(endpoint: string): string {
-    return endpoint.split('/').filter(string => !string.includes(':') && string !== '')[0];
-  }
+  /**
+   * @private
+   * @method handleRequestParameters
+   * @description Handle if route have parameters, and put in request params like req.params
+   */
+  private handleRequestParameters(endpoint: string, url: UrlWithParsedQuery, route: string, params: object): object {
 
-  private getRouteParameters(endpoint: string): Array<string> {
-    return endpoint.split('/').filter(string => string.includes(':'));
-  }
+    if(this.routeParameters[endpoint].length > 0) {
+      const routeParts = url.pathname.split('/').filter((part: string) => part !== '');
+      let spreadRoutes = this.routeHandler[endpoint].filter((route: string) => !route.includes(':') && route !== '');
+      let spreadParameters = this.routeHandler[endpoint].filter((parameter: string) => parameter.includes(':'));
 
-  private ranking(routes: Array<string>) {
-    const classification: object = {};
-
-    routes.forEach(route => {
-      let rankingPoints: number = 0;
-      route.split('/')
-        .filter(path => path.length)
-        .forEach(path => {
-          if(path.startsWith(':')) {
-            rankingPoints += 70;
-          } else {
-            rankingPoints += 60;
-          }
-        });
-
-        if(classification[rankingPoints]) {
-          classification[rankingPoints].push(route);
-        } else {
-          classification[rankingPoints] = [route];
+      let counter = 0;
+      routeParts.forEach((part: any) => {
+        if(!(part == route || spreadRoutes.includes(part))) {
+          let param = spreadParameters[counter].replace(':', '');
+          params[param] = part;
+          counter++;
         }
-    });
-    return classification;
+      })
+
+      return params;
+    }
+  }
+
+  /**
+   * @private
+   * @method processMiddleware
+   * @param {any} request HTTP request
+   * @param {any} response HTTP response
+   * @description Process all registered middlewares
+   * @return {void}
+   */
+  private processMiddleware(request: any, response: any): void {
+    let index = 0;
+    if(this.middlewares.length > 0) {
+      const next = (err = null) => {
+        if(err !== null) {
+          return setImmediate(() => new Error(err));
+        }
+        const layer = this.middlewares[index++];
+
+        try {
+          layer(request, response, next);
+        } catch(error) {
+          next(error);
+        }
+      }
+      next();
+    }
   }
 
   private returnEndpoint(path: string) {
@@ -174,18 +231,6 @@ export default class Router {
     let matcher = {};
 
     let routes = Object.keys(this.handlers);
-    /*
-    routes.sort((a,b) => {
-      let first = this.getParametersCount(a);
-      let second = this.getParametersCount(b);
-      if(first > second) {
-        return -1;
-      }
-      return 1;
-    });
-    */
-
-    const prioritedRoutes = this.getHighPointRankedRoute(routes);
 
     for(let route of routes) {
 
@@ -232,15 +277,6 @@ export default class Router {
     return endpoint;
   }
 
-  private getParametersCount(route: string) {
-    return route.split(':').length - 1;
-  }
-  private getHighPointRankedRoute(routes: Array<string>): Array<string> {
-    const rankedRoutes = this.ranking(routes);
-    const rankedRoutesObjectKeys = Object.keys(rankedRoutes);
-    const highPointRoutes = rankedRoutes[rankedRoutesObjectKeys[rankedRoutesObjectKeys.length - 1]];
-    return highPointRoutes;
-  }
   private splitRoute(route: string): Array<string> {
     return route.split('/').filter(path => path !== '');
   }
@@ -249,6 +285,13 @@ export default class Router {
     return route.split('/').filter(item => !item.includes(':') && item !== '');
   }
 
+  private getFirstRoute(endpoint: string): string {
+    return endpoint.split('/').filter(string => !string.includes(':') && string !== '')[0];
+  }
+
+  private getRouteParameters(endpoint: string): Array<string> {
+    return endpoint.split('/').filter(string => string.includes(':'));
+  }
   /**
    * @private
    * @function intersection
@@ -259,10 +302,22 @@ export default class Router {
     return route.filter(part => compareRoute.includes(part));
   }
 
-  private isEquals(arr1: Array<string>, arr2: Array<string>) {
+  /**
+   * @private
+   * @method isEquals
+   * @description Check if array A is equal array B
+   * @return {boolean}
+   */
+  private isEquals(arr1: Array<string>, arr2: Array<string>): boolean {
     return JSON.stringify(arr1) == JSON.stringify(arr2);
   }
 
+  /**
+   * @protected
+   * @method error
+   * @description Throw a new error based in a message
+   * @throws {Error}
+   */
   protected error(message: string) {
     throw new Error(message);
   }
