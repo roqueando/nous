@@ -13,7 +13,15 @@ router.register("GET", '/hello', (req, res) => {
     res.end();
 });
 
-router.register("GET", "/test/:name/edit/:id", (req, res) => {
+router.register("DELETE", "/test/:id/post", (req, res) => {
+    res.write(`Deleting id: ${req.params.id}`);
+})
+
+router.register("GET", "/test/:id/post/:post_id", (req, res) => {
+    res.write(`Get id: ${req.params.id} the post id: ${req.params.post_id}`);
+})
+
+router.register("GET", "/test/:id/edit/:name", (req, res) => {
     res.write(`Test ${req.params.name} ${req.params.id}`);
 })
 

@@ -145,19 +145,76 @@ export default class Router {
     return endpoint.split('/').filter(string => string.includes(':'));
   }
 
+  private ranking(routes: Array<string>) {
+    const classification: object = {};
+
+    routes.forEach(route => {
+      let rankingPoints: number = 0;
+      route.split('/')
+        .filter(path => path.length)
+        .forEach(path => {
+          if(path.startsWith(':')) {
+            rankingPoints += 70;
+          } else {
+            rankingPoints += 60;
+          }
+        });
+
+        if(classification[rankingPoints]) {
+          classification[rankingPoints].push(route);
+        } else {
+          classification[rankingPoints] = [route];
+        }
+    });
+    return classification;
+  }
+
   private returnEndpoint(path: string) {
 
     let matcher = {};
 
     let routes = Object.keys(this.handlers);
+    /*
+    routes.sort((a,b) => {
+      let first = this.getParametersCount(a);
+      let second = this.getParametersCount(b);
+      if(first > second) {
+        return -1;
+      }
+      return 1;
+    });
+    */
+
+    const prioritedRoutes = this.getHighPointRankedRoute(routes);
 
     for(let route of routes) {
 
+      // if route on routes have parameter
+      if(route.includes(':')) {
+        let routeLength = this.splitRoute(route).length;
+        let pathLength = this.splitRoute(path).length;
+
+        if(routeLength !== pathLength) {
+          continue;
+        }
+        let splitCurrentRoute = this.splitRoute(path);
+        let routeWithoutParameters = this.splitRouteWithoutParameters(route);
+        let intersection = this.intersection(splitCurrentRoute, routeWithoutParameters);
+
+        if(this.isEquals(intersection, routeWithoutParameters)) {
+          matcher[path] = route;
+          break;
+        }
+        matcher[path] = 404;
+        continue;
+      }
       // check if current request path
       // exists on routes array
       if(routes.includes(path)) {
-        matcher[path] = route;
-        break;
+        if(route === path) {
+          matcher[path] = route;
+          break;
+        }
       }
 
       // check if the request is a simple
@@ -170,27 +227,42 @@ export default class Router {
         }
       }
 
-      // if route on routes have parameter
-      if(route.includes(':')) {
-        let splitCurrentRoute = path.split('/').filter(item => item !== '');
-        let routeWithoutParameters = route.split('/').filter(item => !item.includes(':') && item !== '');
-        let intersection = splitCurrentRoute.filter(part => routeWithoutParameters.includes(part));
-
-        if(this.isEquals(intersection, routeWithoutParameters)) {
-          matcher[path] = route;
-          break;
-        }
-        matcher[path] = 404;
-        continue;
-      }
     }
     let endpoint = matcher[path];
     return endpoint;
   }
 
+  private getParametersCount(route: string) {
+    return route.split(':').length - 1;
+  }
+  private getHighPointRankedRoute(routes: Array<string>): Array<string> {
+    const rankedRoutes = this.ranking(routes);
+    const rankedRoutesObjectKeys = Object.keys(rankedRoutes);
+    const highPointRoutes = rankedRoutes[rankedRoutesObjectKeys[rankedRoutesObjectKeys.length - 1]];
+    return highPointRoutes;
+  }
+  private splitRoute(route: string): Array<string> {
+    return route.split('/').filter(path => path !== '');
+  }
+
+  private splitRouteWithoutParameters(route: string): Array<string> {
+    return route.split('/').filter(item => !item.includes(':') && item !== '');
+  }
+
+  /**
+   * @private
+   * @function intersection
+   * @description Make a intersection between two arrays
+   * @return Array<string>
+   */
+  private intersection(route: Array<string>, compareRoute: Array<string>): Array<string> {
+    return route.filter(part => compareRoute.includes(part));
+  }
+
   private isEquals(arr1: Array<string>, arr2: Array<string>) {
     return JSON.stringify(arr1) == JSON.stringify(arr2);
   }
+
   protected error(message: string) {
     throw new Error(message);
   }

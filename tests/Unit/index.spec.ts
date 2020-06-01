@@ -49,7 +49,7 @@ describe('nous tests', () => {
         });
     })
     test('should get route parameters with more routes', async (done) => {
-        http.get(`http://127.0.0.1:${webService.port}/test/john/edit/1`, res => {
+        http.get(`http://127.0.0.1:${webService.port}/test/1/edit/john`, res => {
             res.on('data', chunk => {
                 expect(chunk.toString()).toBe('Test john 1')
                 done();
@@ -104,11 +104,43 @@ describe('nous tests', () => {
         expect(decoded.payload).toStrictEqual({id: 1, role: 'user'});
     });
 
-    //TODO: searct why is hitting console log twice
     test('should show middleware request parameter', (done) => {
         http.get(`http://127.0.0.1:${webService.port}/middle`, res => {
             res.on('data', chunk => {
                 expect(chunk.toString()).toBe('Hey middleware testing');
+                done();
+            })
+        });
+    });
+
+    test('should hit a /test/:id/post', (done) => {
+        const postData = JSON.stringify({
+            name: "John"
+        });
+        const opts = {
+            port: webService.port,
+            path: '/test/1/post',
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+        const req = http.request(opts, (res) => {
+            res.setEncoding('utf8');
+            res.on('data', chunk => {
+                expect(chunk).toBe('Deleting id: 1');
+                done();
+            })
+        })
+        req.write(postData);
+        req.end();
+    });
+
+    test('should hit a 2 parameters route', (done) => {
+        http.get(`http://127.0.0.1:${webService.port}/test/1/post/2`, res => {
+            res.on('data', chunk => {
+                expect(chunk.toString()).toBe(`Get id: 1 the post id: 2`);
                 done();
             })
         });
