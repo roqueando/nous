@@ -124,6 +124,7 @@ export default class Router {
     let params = {};
     let body = []
 
+    this.isRequestFavicon(req, res);
     this.processMiddleware(req, res);
 
     const route = this.getFirstRoute(url.pathname);
@@ -310,6 +311,14 @@ export default class Router {
    */
   private isEquals(arr1: Array<string>, arr2: Array<string>): boolean {
     return JSON.stringify(arr1) == JSON.stringify(arr2);
+  }
+
+  private isRequestFavicon(request, response): void {
+    if(request.url === '/favicon.ico') {
+      response.writeHead(200, {'Content-Type': 'image/x-icon'});
+      response.end();
+      return;
+    }
   }
 
   /**
