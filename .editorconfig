@@ -1,4 +1,3 @@
-
 root = true
 
 [{src,scripts}/**.{ts,json,js}]

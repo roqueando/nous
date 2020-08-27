@@ -35,7 +35,6 @@ const helpers = {
     httpGet: async (url: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             http.get(url, res => {
-                console.log(res);
                 res.on('data', chunk => {
                     return resolve(chunk.toString);
                 })
