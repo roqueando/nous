@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "npx ts-node-dev --respawn --transpileOnly src/index.ts",
         "start": "npx ts-node src/index.ts",
-        "test": "rm -rf dist && npm run build && jest --forceExit --runInBand --no-cache",
+        "test": "jest --runInBand --no-cache",
         "build": "npx tsc --build",
         "prepare": "rm -rf dist && npm run build",
         "prepublishOnly": "npm test"
@@ -28,7 +28,8 @@
         "ts-jest": "^25.2.1",
         "ts-node": "^8.6.2",
         "ts-node-dev": "^1.0.0-pre.44",
-        "typescript": "^3.8.3"
+        "typescript": "^3.8.3",
+        "ws": "^7.3.1"
     },
     "keywords": [
         "distributed",

@@ -28,4 +28,7 @@ export default class Client {
       this.socket.on('error', err => reject(err));
     })
   }
+  protected destroy(): void {
+    this.socket.destroy();
+  }
 }
